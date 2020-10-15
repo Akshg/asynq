@@ -38,8 +38,7 @@ const useStyles = makeStyles((theme) => ({
     ...theme.mixins.toolbar,
   },
   appBar: {
-    // Got color palette from https://htmlcolors.com/palette/31/stripe
-    backgroundColor: "#4379FF", // TODO: Use theme to use the same style across the app.
+    backgroundColor: theme.palette.primary.main,
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
