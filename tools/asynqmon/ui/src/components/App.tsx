@@ -4,13 +4,11 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import Divider from "@material-ui/core/Divider";
 import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import Badge from "@material-ui/core/Badge";
 import MenuIcon from "@material-ui/icons/Menu";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import BarChartIcon from "@material-ui/icons/BarChart";
@@ -83,6 +81,9 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   appBarSpacer: theme.mixins.toolbar,
+  mainContainer: {
+    display: "flex",
+  },
   content: {
     flexGrow: 1,
     height: "100vh",
@@ -93,29 +94,20 @@ const useStyles = makeStyles((theme) => ({
 function App() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(true);
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-  const handleDrawerClose = () => {
-    setOpen(false);
+  const toggleDrawer = () => {
+    setOpen(!open);
   };
   return (
     <Router>
       <div className={classes.root}>
-        <AppBar
-          position="absolute"
-          className={clsx(classes.appBar, open && classes.appBarShift)}
-        >
+        <AppBar position="absolute" className={classes.appBar}>
           <Toolbar className={classes.toolbar}>
             <IconButton
               edge="start"
               color="inherit"
               aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              className={clsx(
-                classes.menuButton,
-                open && classes.menuButtonHidden
-              )}
+              onClick={toggleDrawer}
+              className={classes.menuButton}
             >
               <MenuIcon />
             </IconButton>
@@ -126,7 +118,7 @@ function App() {
               noWrap
               className={classes.title}
             >
-              Asynq
+              Asynq Monitoring
             </Typography>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
@@ -135,49 +127,49 @@ function App() {
             </IconButton>
           </Toolbar>
         </AppBar>
-        <Drawer
-          variant="permanent"
-          classes={{
-            paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
-          }}
-          open={open}
-        >
-          <div className={classes.toolbarIcon}>
-            <IconButton onClick={handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </div>
-          <Divider />
-          <List>
-            <div>
-              <ListItemLink
-                to="/"
-                primary="Dashboard"
-                icon={<DashboardIcon />}
-              />
-              <ListItemLink
-                to="/queues"
-                primary="Queues"
-                icon={<BarChartIcon />}
-              />
-              <ListItemLink to="/cron" primary="Cron" icon={<LayersIcon />} />
-            </div>
-          </List>
-        </Drawer>
-        <main className={classes.content}>
-          <div className={classes.appBarSpacer} />
-          <Switch>
-            <Route path="/queues">
-              <QueuesView />
-            </Route>
-            <Route path="/cron">
-              <CronView />
-            </Route>
-            <Route path="/">
-              <DashboardView />
-            </Route>
-          </Switch>
-        </main>
+        <div className={classes.mainContainer}>
+          <Drawer
+            variant="permanent"
+            classes={{
+              paper: clsx(
+                classes.drawerPaper,
+                !open && classes.drawerPaperClose
+              ),
+            }}
+            open={open}
+          >
+            <div className={classes.appBarSpacer} />
+            <List>
+              <div>
+                <ListItemLink
+                  to="/"
+                  primary="Dashboard"
+                  icon={<DashboardIcon />}
+                />
+                <ListItemLink
+                  to="/queues"
+                  primary="Queues"
+                  icon={<BarChartIcon />}
+                />
+                <ListItemLink to="/cron" primary="Cron" icon={<LayersIcon />} />
+              </div>
+            </List>
+          </Drawer>
+          <main className={classes.content}>
+            <div className={classes.appBarSpacer} />
+            <Switch>
+              <Route path="/queues">
+                <QueuesView />
+              </Route>
+              <Route path="/cron">
+                <CronView />
+              </Route>
+              <Route path="/">
+                <DashboardView />
+              </Route>
+            </Switch>
+          </main>
+        </div>
       </div>
     </Router>
   );
