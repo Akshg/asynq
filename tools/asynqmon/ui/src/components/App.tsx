@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
+import Drawer from "@material-ui/core/Drawer";
 import Toolbar from "@material-ui/core/Toolbar";
 import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
@@ -13,13 +14,12 @@ import NotificationsIcon from "@material-ui/icons/Notifications";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import BarChartIcon from "@material-ui/icons/BarChart";
 import LayersIcon from "@material-ui/icons/Layers";
-import CronView from "./CronView";
-import DashboardView from "./DashboardView";
-import QueuesView from "./QueuesView";
-import Drawer from "@material-ui/core/Drawer";
-import ListItemLink from "./ListItemLink";
+import CronView from "./views/cron/CronView";
+import DashboardView from "./views/dashboard/DashboardView";
+import QueuesView from "./views/queues/QueuesView";
+import ListItemLink from "./common/ListItemLink";
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,29 +36,19 @@ const useStyles = makeStyles((theme) => ({
     ...theme.mixins.toolbar,
   },
   appBar: {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.background.paper,
     zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
   },
   menuButton: {
     marginRight: 36,
+    color: theme.palette.grey[700],
   },
   menuButtonHidden: {
     display: "none",
   },
   title: {
     flexGrow: 1,
+    color: theme.palette.grey[800],
   },
   drawerPaper: {
     position: "relative",
@@ -83,11 +73,15 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   mainContainer: {
     display: "flex",
+    width: "100vw",
   },
   content: {
     flexGrow: 1,
     height: "100vh",
     overflow: "auto",
+  },
+  notification: {
+    color: theme.palette.grey[700],
   },
 }));
 
@@ -100,7 +94,7 @@ function App() {
   return (
     <Router>
       <div className={classes.root}>
-        <AppBar position="absolute" className={classes.appBar}>
+        <AppBar position="absolute" className={classes.appBar} elevation={0} variant="outlined">
           <Toolbar className={classes.toolbar}>
             <IconButton
               edge="start"
@@ -122,7 +116,7 @@ function App() {
             </Typography>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
+                <NotificationsIcon className={classes.notification} />
               </Badge>
             </IconButton>
           </Toolbar>
