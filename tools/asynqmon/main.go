@@ -9,14 +9,16 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
+	"github.com/hibiken/asynq/internal/rdb"
 )
 
-// spaHandler implements the http.Handler interface, so we can use it
+// staticFileServer implements the http.Handler interface, so we can use it
 // to respond to HTTP requests. The path to the static directory and
 // path to the index file within that static directory are used to
 // serve the SPA in the given static directory.
-type spaHandler struct {
+type staticFileServer struct {
 	staticPath string
 	indexPath  string
 }
@@ -25,7 +27,7 @@ type spaHandler struct {
 // on the SPA handler. If a file is found, it will be served. If not, the
 // file located at the index path on the SPA handler will be served. This
 // is suitable behavior for serving an SPA (single page application).
-func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (srv *staticFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// get the absolute path to prevent directory traversal
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
@@ -36,13 +38,13 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// prepend the path with the path to the static directory
-	path = filepath.Join(h.staticPath, path)
+	path = filepath.Join(srv.staticPath, path)
 
 	// check whether a file exists at the given path
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		// file does not exist, serve index.html
-		http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
+		http.ServeFile(w, r, filepath.Join(srv.staticPath, srv.indexPath))
 		return
 	} else if err != nil {
 		// if we got an error (that wasn't that the file doesn't exist) stating the
@@ -52,20 +54,27 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// otherwise, use http.FileServer to serve the static dir
-	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
+	http.FileServer(http.Dir(srv.staticPath)).ServeHTTP(w, r)
 }
 
+var redisClient *rdb.RDB
+
+const addr = "127.0.0.1:8080"
+
 func main() {
-	const addr = "127.0.0.1:8080"
+	redisClient = rdb.NewRDB(redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	}))
+	defer redisClient.Close()
+
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		// an example API handler
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
+	api := router.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/queues", handleListQueues)
+	api.HandleFunc("/queues/{qname}", handleGetQueue)
 
-	spa := spaHandler{staticPath: "ui/build", indexPath: "index.html"}
-	router.PathPrefix("/").Handler(spa)
+	fs := &staticFileServer{staticPath: "ui/build", indexPath: "index.html"}
+	router.PathPrefix("/").Handler(fs)
 
 	srv := &http.Server{
 		Handler:      router,
@@ -76,4 +85,50 @@ func main() {
 
 	fmt.Printf("Asynq Monitoring WebUI server is running on %s\n", addr)
 	log.Fatal(srv.ListenAndServe())
+}
+
+func handleListQueues(w http.ResponseWriter, r *http.Request) {
+	qnames, err := redisClient.AllQueues()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var stats []*rdb.Stats
+	for _, qname := range qnames {
+		s, err := redisClient.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		stats = append(stats, s)
+	}
+	payload := map[string]interface{}{"queues": stats}
+	json.NewEncoder(w).Encode(payload)
+}
+
+func handleGetQueue(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	qname := vars["qname"]
+
+	payload := make(map[string]interface{})
+	stats, err := redisClient.CurrentStats(qname)
+	if err != nil {
+		notFoundErr, ok := err.(*rdb.ErrQueueNotFound)
+		if ok {
+			http.Error(w, notFoundErr.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	payload["current"] = stats
+
+	// TODO: make this n a variable
+	dailyStats, err := redisClient.HistoricalStats(qname, 10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	payload["history"] = dailyStats
+	json.NewEncoder(w).Encode(payload)
 }

@@ -24,38 +24,38 @@ func (r *RDB) AllQueues() ([]string, error) {
 // Stats represents a state of queues at a certain time.
 type Stats struct {
 	// Name of the queue (e.g. "default", "critical").
-	Queue string
+	Queue string `json:"queue"`
 	// Paused indicates whether the queue is paused.
 	// If true, tasks in the queue should not be processed.
-	Paused bool
+	Paused bool `json:"paused"`
 	// Size is the total number of tasks in the queue.
-	Size int
+	Size int `json:"size"`
 	// Number of tasks in each state.
-	Pending   int
-	Active    int
-	Scheduled int
-	Retry     int
-	Dead      int
+	Pending   int `json:"pending"`
+	Active    int `json:"active"`
+	Scheduled int `json:"scheduled"`
+	Retry     int `json:"retry"`
+	Dead      int `json:"dead"`
 	// Total number of tasks processed during the current date.
 	// The number includes both succeeded and failed tasks.
-	Processed int
+	Processed int `json:"processed"`
 	// Total number of tasks failed during the current date.
-	Failed int
+	Failed int `json:"failed"`
 	// Time this stats was taken.
-	Timestamp time.Time
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // DailyStats holds aggregate data for a given day.
 type DailyStats struct {
 	// Name of the queue (e.g. "default", "critical").
-	Queue string
+	Queue string `json:"queue"`
 	// Total number of tasks processed during the given day.
 	// The number includes both succeeded and failed tasks.
-	Processed int
+	Processed int `json:"processed"`
 	// Total number of tasks failed during the given day.
-	Failed int
+	Failed int `json:"failed"`
 	// Date this stats was taken.
-	Time time.Time
+	Time time.Time `json:"date"`
 }
 
 // KEYS[1] -> asynq:<qname>
