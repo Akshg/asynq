@@ -12,6 +12,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
 	"github.com/hibiken/asynq/internal/rdb"
+	"github.com/rs/cors"
 )
 
 // staticFileServer implements the http.Handler interface, so we can use it
@@ -76,8 +77,10 @@ func main() {
 	fs := &staticFileServer{staticPath: "ui/build", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(fs)
 
+	handler := cors.Default().Handler(router)
+
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      handler,
 		Addr:         addr,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,

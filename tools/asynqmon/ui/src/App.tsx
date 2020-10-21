@@ -12,12 +12,12 @@ import Badge from "@material-ui/core/Badge";
 import MenuIcon from "@material-ui/icons/Menu";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 import DashboardIcon from "@material-ui/icons/Dashboard";
-import BarChartIcon from "@material-ui/icons/BarChart";
 import LayersIcon from "@material-ui/icons/Layers";
-import CronView from "./views/cron/CronView";
-import DashboardView from "./views/dashboard/DashboardView";
-import QueuesView from "./views/queues/QueuesView";
-import ListItemLink from "./common/ListItemLink";
+import { paths } from "./paths";
+import CronView from "./views/CronView";
+import QueueDetailsView from "./views/QueueDetailsView";
+import DashboardView from "./views/DashboardView";
+import ListItemLink from "./components/ListItemLink";
 
 const drawerWidth = 220;
 
@@ -140,11 +140,6 @@ function App() {
                   primary="Dashboard"
                   icon={<DashboardIcon />}
                 />
-                <ListItemLink
-                  to="/queues"
-                  primary="Queues"
-                  icon={<BarChartIcon />}
-                />
                 <ListItemLink to="/cron" primary="Cron" icon={<LayersIcon />} />
               </div>
             </List>
@@ -152,14 +147,14 @@ function App() {
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Switch>
-              <Route path="/queues">
-                <QueuesView />
+              <Route path={paths.QUEUE_DETAILS}>
+                <QueueDetailsView />
               </Route>
-              <Route path="/cron">
+              <Route path={paths.CRON}>
                 <CronView />
               </Route>
-              <Route path="/">
-                <DashboardView />
+              <Route path={paths.HOME}>
+                <DashboardView pollInterval={5} />
               </Route>
             </Switch>
           </main>

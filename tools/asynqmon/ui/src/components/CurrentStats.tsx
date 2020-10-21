@@ -25,23 +25,23 @@ function CurrentStats(props: Props): ReactElement {
   return (
     <div className={classes.root}>
       <div className={classes.item}>
-        <Typography variant="h4">{props.active}</Typography>
+        <Typography variant="h6">{props.active}</Typography>
         <Typography color="textSecondary">Active</Typography>
       </div>
       <div className={classes.item}>
-        <Typography variant="h4">{props.pending}</Typography>
+        <Typography variant="h6">{props.pending}</Typography>
         <Typography color="textSecondary">Pending</Typography>
       </div>
       <div className={classes.item}>
-        <Typography variant="h4">{props.scheduled}</Typography>
+        <Typography variant="h6">{props.scheduled}</Typography>
         <Typography color="textSecondary">Scheduled</Typography>
       </div>
       <div className={classes.item}>
-        <Typography variant="h4">{props.retry}</Typography>
+        <Typography variant="h6">{props.retry}</Typography>
         <Typography color="textSecondary">Retry</Typography>
       </div>
       <div className={classes.item}>
-        <Typography variant="h4">{props.dead}</Typography>
+        <Typography variant="h6">{props.dead}</Typography>
         <Typography color="textSecondary">Dead</Typography>
       </div>
     </div>

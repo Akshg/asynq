@@ -1,9 +1,13 @@
 import React, { ReactElement } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer,
+  ResponsiveContainer, Text
 } from 'recharts';
 import { makeStyles } from "@material-ui/core/styles";
+import { Link } from "react-router-dom"
+import styled from "styled-components";
+import { queueDetailsPath } from "../paths";
+import { Queue } from '../api';
 
 const useStyles = makeStyles({
   container: {
@@ -12,56 +16,31 @@ const useStyles = makeStyles({
   },
 })
 
-const data = [
-  {
-    name: 'default',
-    active: 4,
-    pending: 24,
-    scheduled: 52,
-    retry: 14,
-    dead: 0,
-  },
-  {
-    name: 'email',
-    active: 10,
-    pending: 24,
-    scheduled: 42,
-    retry: 4,
-    dead: 0,
-  },
-  {
-    name: 'critical',
-    active: 4,
-    pending: 19,
-    scheduled: 2,
-    retry: 14,
-    dead: 4,
-  },
-  {
-    name: 'low',
-    active: 4,
-    pending: 4,
-    scheduled: 2,
-    retry: 1,
-    dead: 1,
-  },
-];
+interface Props {
+  queues: Queue[],
+};
 
-function QueuesChart(): ReactElement {
+function QueuesChart(props: Props): ReactElement {
   const classes = useStyles()
+
   return (
     <div className={classes.container}>
       <ResponsiveContainer>
         <BarChart
           layout="vertical"
-          data={data}
+          data={props.queues}
           margin={{
             top: 20, right: 30, left: 20, bottom: 5,
           }}
+          barSize={45}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis dataKey="name" type="category" />
+          <XAxis type="number" minTickGap={1} />
+          <YAxis
+            dataKey="queue"
+            type="category"
+            tick={LinkTick}
+          />
           <Tooltip />
           <Legend />
           {/*  colors: https://www.color-hex.com/color-palette/700 */}
@@ -76,5 +55,27 @@ function QueuesChart(): ReactElement {
     </div>
   );
 }
+
+interface RechartsTickProps {
+  payload: {
+    value: string;
+  };
+}
+
+function LinkTick(props: RechartsTickProps) {
+  return (
+    <StyledLink to={queueDetailsPath(props.payload.value)}>
+      <Text {...props}>
+        {props.payload.value}
+      </Text>
+    </StyledLink>
+  )
+}
+
+const StyledLink = styled(Link)`
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: underline;
+`;
 
 export default QueuesChart;
