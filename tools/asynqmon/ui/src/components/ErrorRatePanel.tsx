@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 
 interface Props {
-  succeeded: number;
+  processed: number;
   failed: number;
 }
 
@@ -28,13 +28,16 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ErrorRatePanel(props: Props) {
   const classes = useStyles();
-  const total = props.succeeded + props.failed;
   return (
     <React.Fragment>
-      <Typography variant="h6" color="textSecondary">Today</Typography>
+      <Typography variant="h6" color="textSecondary">
+        Today
+      </Typography>
       <div className={classes.errrateRow}>
         <Typography component="p" variant="h5">
-          {total === 0 ? "N/A" : (props.failed / total).toFixed(4)}
+          {props.processed === 0
+            ? "N/A"
+            : (props.failed / props.processed).toFixed(4)}
         </Typography>
         <Typography color="textSecondary">Error Rate</Typography>
       </div>
@@ -42,7 +45,7 @@ export default function ErrorRatePanel(props: Props) {
       <div className={classes.countRow}>
         <div className={classes.countRowItem}>
           <Typography component="p" variant="h5">
-            {props.succeeded}
+            {props.processed - props.failed}
           </Typography>
           <Typography color="textSecondary">Succeeded</Typography>
         </div>

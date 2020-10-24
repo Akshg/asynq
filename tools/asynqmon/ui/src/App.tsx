@@ -94,7 +94,12 @@ function App() {
   return (
     <Router>
       <div className={classes.root}>
-        <AppBar position="absolute" className={classes.appBar} elevation={0} variant="outlined">
+        <AppBar
+          position="absolute"
+          className={classes.appBar}
+          elevation={0}
+          variant="outlined"
+        >
           <Toolbar className={classes.toolbar}>
             <IconButton
               edge="start"
@@ -148,7 +153,7 @@ function App() {
             <div className={classes.appBarSpacer} />
             <Switch>
               <Route path={paths.QUEUE_DETAILS}>
-                <QueueDetailsView />
+                <QueueDetailsView pollInterval={5} />
               </Route>
               <Route path={paths.CRON}>
                 <CronView />

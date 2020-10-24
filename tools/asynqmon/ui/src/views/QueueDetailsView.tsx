@@ -1,15 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
+import { useParams } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 import Chart, { HourlyStat } from "../components/Chart";
 import Copyright from "../components/Copyright";
 import CurrentStats from "../components/CurrentStats";
 import ErrorRatePanel from "../components/ErrorRatePanel";
 import HistoryStats from "../components/HistoryStats";
+import { DailyStat, getQueue, Queue } from "../api";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -27,21 +30,48 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function QueueDetailsView() {
-  const classes = useStyles();
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+interface RouteParams {
+  qname: string;
+}
 
+interface Props {
+  pollInterval: number; // polling interval in seconds.
+}
+
+function QueueDetailsView(props: Props) {
+  const classes = useStyles();
+  const [queueInfo, setQueueInfo] = useState<Queue | null>(null);
+  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
+  const { qname } = useParams<RouteParams>();
+
+  useEffect(() => {
+    const loadData = () => {
+      getQueue(qname).then((data) => {
+        console.log("fetched queue details:", data);
+        setQueueInfo(data.current);
+        setDailyStats(data.history);
+      });
+    };
+    loadData();
+    const handle = setInterval(loadData, props.pollInterval * 1000);
+    return () => clearInterval(handle);
+  }, [props.pollInterval, qname]);
+
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
+          <Typography variant="h6">Queue: {qname}</Typography>
+        </Grid>
+        <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
             <CurrentStats
-              active={12}
-              pending={40}
-              scheduled={37}
-              retry={5}
-              dead={1}
+              active={queueInfo !== null ? queueInfo.active : 0}
+              pending={queueInfo !== null ? queueInfo.pending : 0}
+              scheduled={queueInfo !== null ? queueInfo.scheduled : 0}
+              retry={queueInfo !== null ? queueInfo.retry : 0}
+              dead={queueInfo !== null ? queueInfo.dead : 0}
             />
           </Paper>
         </Grid>
@@ -52,12 +82,15 @@ function QueueDetailsView() {
         </Grid>
         <Grid item xs={12} md={4} lg={3}>
           <Paper className={fixedHeightPaper} variant="outlined">
-            <ErrorRatePanel succeeded={12934} failed={23} />
+            <ErrorRatePanel
+              processed={queueInfo !== null ? queueInfo.processed : 0}
+              failed={queueInfo !== null ? queueInfo.failed : 0}
+            />
           </Paper>
         </Grid>
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
-            <HistoryStats data={dailyStatsData} />
+            <HistoryStats data={dailyStats} />
           </Paper>
         </Grid>
       </Grid>
@@ -70,67 +103,11 @@ function QueueDetailsView() {
 
 export default QueueDetailsView;
 
-const dailyStatsData = [
-  {
-    date: '2020-09-29', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-09-30', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-01', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-02', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-03', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-04', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-05', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-06', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-07', succeeded: 4000, failed: 2400,
-  },
-  {
-    date: '2020-10-08', succeeded: 3000, failed: 1398,
-  },
-  {
-    date: '2020-10-09', succeeded: 2000, failed: 9800,
-  },
-  {
-    date: '2020-10-10', succeeded: 2780, failed: 3908,
-  },
-  {
-    date: '2020-10-11', succeeded: 1890, failed: 4800,
-  },
-  {
-    date: '2020-10-12', succeeded: 2390, failed: 3800,
-  },
-  {
-    date: '2020-10-13', succeeded: 3490, failed: 4300
-  },
-  {
-    date: '2020-10-14', succeeded: 3490, failed: 4300,
-  },
-  {
-    date: '2020-10-15', succeeded: 3490, failed: 4300,
-  },
-  {
-    date: '2020-10-16', succeeded: 3490, failed: 4300,
-  },
-  {
-    date: '2020-10-17', succeeded: 3490, failed: 4300,
-  },
-];
-
-function createDataPoint(time: string, succeeded: number, failed: number): HourlyStat {
+function createDataPoint(
+  time: string,
+  succeeded: number,
+  failed: number
+): HourlyStat {
   return { time, succeeded, failed };
 }
 

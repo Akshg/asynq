@@ -3,7 +3,7 @@ import Container from "@material-ui/core/Container";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import { fetchQueues, Queue } from "../api";
+import { listQueues, Queue } from "../api";
 import QueuesOverviewTable from "../components/QueuesOverviewTable";
 
 const useStyles = makeStyles((theme) => ({
@@ -17,11 +17,11 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     flexDirection: "column",
   },
-}))
+}));
 
 interface Props {
   pollInterval: number; // polling interval in seconds.
-};
+}
 
 function DashboardView(props: Props) {
   const classes = useStyles();
@@ -29,12 +29,12 @@ function DashboardView(props: Props) {
 
   useEffect(() => {
     const loadQueues = () => {
-      fetchQueues().then(data => {
+      listQueues().then((data) => {
         setQueues(data.queues);
       });
     };
     loadQueues();
-    const handle = setInterval(loadQueues, props.pollInterval * 1000)
+    const handle = setInterval(loadQueues, props.pollInterval * 1000);
     return () => clearInterval(handle);
   }, [props.pollInterval]);
 

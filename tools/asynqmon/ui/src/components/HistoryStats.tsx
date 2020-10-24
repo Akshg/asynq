@@ -1,14 +1,16 @@
 import React, { ReactElement } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { useTheme, makeStyles } from "@material-ui/core/styles";
-
-interface DailyStat {
-  date: string;
-  succeeded: number;
-  failed: number;
-}
+import { DailyStat } from "../api";
 
 interface Props {
   data: DailyStat[];
@@ -19,20 +21,39 @@ const useStyles = makeStyles({
     width: "100%",
     height: 300,
   },
-})
+});
+
+function formatDate(timestamp: string): string {
+  let date: number;
+  try {
+    date = Date.parse(timestamp);
+  } catch (err) {
+    console.error("could not parse timestamp:", timestamp);
+    return "unkonwn-date";
+  }
+  return new Intl.DateTimeFormat("en-US").format(date);
+}
 
 function HistoryStats(props: Props): ReactElement {
   const theme = useTheme();
   const classes = useStyles();
+  const chartData = props.data.map((stat) => ({
+    ...stat,
+    succeeded: stat.processed - stat.failed,
+    date: formatDate(stat.date),
+  }));
   return (
     <React.Fragment>
       <div>History</div>
       <div className={classes.container}>
         <ResponsiveContainer>
           <BarChart
-            data={props.data}
+            data={chartData.reverse()}
             margin={{
-              top: 20, right: 30, left: 20, bottom: 5,
+              top: 20,
+              right: 30,
+              left: 20,
+              bottom: 5,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -40,8 +61,16 @@ function HistoryStats(props: Props): ReactElement {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="succeeded" stackId="a" fill={theme.palette.success.light} />
-            <Bar dataKey="failed" stackId="a" fill={theme.palette.error.light} />
+            <Bar
+              dataKey="succeeded"
+              stackId="a"
+              fill={theme.palette.success.light}
+            />
+            <Bar
+              dataKey="failed"
+              stackId="a"
+              fill={theme.palette.error.light}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -2,8 +2,13 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:8080/api";
 
-interface FetchQueuesResponse {
+interface ListQueuesResponse {
   queues: Queue[];
+}
+
+interface GetQueueResponse {
+  current: Queue;
+  history: DailyStat[];
 }
 
 export interface Queue {
@@ -17,12 +22,27 @@ export interface Queue {
   dead: number;
   processed: number;
   failed: number;
+  timestamp: string;
 }
 
-export async function fetchQueues(): Promise<FetchQueuesResponse> {
+export interface DailyStat {
+  date: string;
+  processed: number;
+  failed: number;
+}
+
+export async function listQueues(): Promise<ListQueuesResponse> {
   const resp = await axios({
     method: "get",
     url: `${BASE_URL}/queues`,
+  });
+  return resp.data;
+}
+
+export async function getQueue(qname: string): Promise<GetQueueResponse> {
+  const resp = await axios({
+    method: "get",
+    url: `${BASE_URL}/queues/${qname}`,
   });
   return resp.data;
 }
