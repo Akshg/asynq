@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import clsx from "clsx";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
@@ -8,9 +8,8 @@ import Toolbar from "@material-ui/core/Toolbar";
 import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
-import Badge from "@material-ui/core/Badge";
 import MenuIcon from "@material-ui/icons/Menu";
-import NotificationsIcon from "@material-ui/icons/Notifications";
+import Slider from "@material-ui/core/Slider";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import LayersIcon from "@material-ui/icons/Layers";
 import { paths } from "./paths";
@@ -80,16 +79,34 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
     overflow: "auto",
   },
-  notification: {
-    color: theme.palette.grey[700],
+  slider: {
+    width: "200px",
+    minWidth: "180px",
+  },
+  sliderLabel: {
+    fontSize: "12px",
+    paddingTop: "16px",
+    paddingBottom: "4px",
   },
 }));
 
+const initialSliderValue = 4;
+
 function App() {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
+  };
+  // Note: We need to keep `sliderValue` and `pollInterval` distinct
+  // to avoid changing `pollInterval` while user is using the slider the change the value.
+  const [sliderValue, setSliderValue] = useState(initialSliderValue);
+  const handleSliderValueChange = (event: any, val: number | number[]) => {
+    setSliderValue(val as number);
+  };
+  const [pollInterval, setPollInterval] = useState(initialSliderValue);
+  const handleSliderValueCommited = (event: any, val: number | number[]) => {
+    setPollInterval(val as number);
   };
   return (
     <Router>
@@ -119,11 +136,26 @@ function App() {
             >
               Asynq Monitoring
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon className={classes.notification} />
-              </Badge>
-            </IconButton>
+            <div className={classes.slider}>
+              <Typography
+                gutterBottom
+                color="primary"
+                className={classes.sliderLabel}
+              >
+                Polling Interval (Every {sliderValue} seconds)
+              </Typography>
+              <Slider
+                value={sliderValue}
+                onChange={handleSliderValueChange}
+                onChangeCommitted={handleSliderValueCommited}
+                aria-labelledby="continuous-slider"
+                valueLabelDisplay="auto"
+                step={1}
+                marks={true}
+                min={2}
+                max={20}
+              />
+            </div>
           </Toolbar>
         </AppBar>
         <div className={classes.mainContainer}>
@@ -153,13 +185,13 @@ function App() {
             <div className={classes.appBarSpacer} />
             <Switch>
               <Route path={paths.QUEUE_DETAILS}>
-                <QueueDetailsView pollInterval={5} />
+                <QueueDetailsView pollInterval={pollInterval} />
               </Route>
               <Route path={paths.CRON}>
                 <CronView />
               </Route>
               <Route path={paths.HOME}>
-                <DashboardView pollInterval={5} />
+                <DashboardView pollInterval={pollInterval} />
               </Route>
             </Switch>
           </main>

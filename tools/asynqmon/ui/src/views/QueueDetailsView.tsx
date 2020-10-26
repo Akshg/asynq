@@ -47,7 +47,6 @@ function QueueDetailsView(props: Props) {
   useEffect(() => {
     const loadData = () => {
       getQueue(qname).then((data) => {
-        console.log("fetched queue details:", data);
         setQueueInfo(data.current);
         setDailyStats(data.history);
       });
