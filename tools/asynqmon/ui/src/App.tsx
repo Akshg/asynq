@@ -114,7 +114,6 @@ function App() {
         <AppBar
           position="absolute"
           className={classes.appBar}
-          elevation={0}
           variant="outlined"
         >
           <Toolbar className={classes.toolbar}>

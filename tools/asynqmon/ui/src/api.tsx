@@ -46,3 +46,17 @@ export async function getQueue(qname: string): Promise<GetQueueResponse> {
   });
   return resp.data;
 }
+
+export async function pauseQueue(qname: string): Promise<void> {
+  await axios({
+    method: "post",
+    url: `${BASE_URL}/queues/${qname}/pause`,
+  });
+}
+
+export async function resumeQueue(qname: string): Promise<void> {
+  await axios({
+    method: "post",
+    url: `${BASE_URL}/queues/${qname}/resume`,
+  });
+}
