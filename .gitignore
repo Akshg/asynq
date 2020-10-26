@@ -16,6 +16,7 @@
 
 # Ignore command binary
 /tools/asynq/asynq
+/tools/asynqmon/asynqmon
 
 # Ignore asynq config file
 .asynq.*

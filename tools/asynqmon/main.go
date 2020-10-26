@@ -71,8 +71,10 @@ func main() {
 	router := mux.NewRouter()
 
 	api := router.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/queues", handleListQueues)
-	api.HandleFunc("/queues/{qname}", handleGetQueue)
+	api.HandleFunc("/queues", handleListQueues).Methods("GET")
+	api.HandleFunc("/queues/{qname}", handleGetQueue).Methods("GET")
+	api.HandleFunc("/queues/{qname}/pause", handlePauseQueue).Methods("POST")
+	api.HandleFunc("/queues/{qname}/resume", handleResumeQueue).Methods("POST")
 
 	fs := &staticFileServer{staticPath: "ui/build", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(fs)
@@ -134,4 +136,24 @@ func handleGetQueue(w http.ResponseWriter, r *http.Request) {
 	}
 	payload["history"] = dailyStats
 	json.NewEncoder(w).Encode(payload)
+}
+
+func handlePauseQueue(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	qname := vars["qname"]
+	if err := redisClient.Pause(qname); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleResumeQueue(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	qname := vars["qname"]
+	if err := redisClient.Unpause(qname); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
