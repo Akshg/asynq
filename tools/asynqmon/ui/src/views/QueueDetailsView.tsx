@@ -3,9 +3,12 @@ import clsx from "clsx";
 import { useParams } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
+import PauseCircleFilledIcon from "@material-ui/icons/PauseCircleFilled";
+import PlayCircleFilledIcon from "@material-ui/icons/PlayCircleFilled";
 import Typography from "@material-ui/core/Typography";
 import Chart, { HourlyStat } from "../components/Chart";
 import Copyright from "../components/Copyright";
@@ -27,6 +30,9 @@ const useStyles = makeStyles((theme) => ({
   },
   fixedHeight: {
     height: 240,
+  },
+  alignRight: {
+    textAlign: "right",
   },
 }));
 
@@ -56,12 +62,35 @@ function QueueDetailsView(props: Props) {
     return () => clearInterval(handle);
   }, [props.pollInterval, qname]);
 
+  const isPaused = queueInfo !== null && queueInfo.paused;
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h6">Queue: {qname}</Typography>
+        <Grid item xs={10}>
+          <Typography variant="h6">
+            Queue: {qname}
+            {isPaused ? " (paused)" : ""}
+          </Typography>
+        </Grid>
+        <Grid item xs={2} className={classes.alignRight}>
+          {isPaused ? (
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<PlayCircleFilledIcon />}
+            >
+              Resume
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<PauseCircleFilledIcon />}
+            >
+              Pause
+            </Button>
+          )}
         </Grid>
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">

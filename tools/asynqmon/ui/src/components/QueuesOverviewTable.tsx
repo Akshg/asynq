@@ -9,6 +9,9 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
+import IconButton from "@material-ui/core/IconButton";
+import PauseCircleFilledIcon from "@material-ui/icons/PauseCircleFilled";
+import PlayCircleFilledIcon from "@material-ui/icons/PlayCircleFilled";
 import { Queue } from "../api";
 import { queueDetailsPath } from "../paths";
 
@@ -41,6 +44,8 @@ enum SortBy {
   Dead,
   Processed,
   Failed,
+
+  None, // disable sort
 }
 
 enum SortDirection {
@@ -58,6 +63,7 @@ const columnConfig = [
   { label: "Dead", key: "dead", sortBy: SortBy.Dead },
   { label: "Processed", key: "processed", sortBy: SortBy.Processed },
   { label: "Failed", key: "failed", sortBy: SortBy.Failed },
+  { label: "Pause", key: "pause", sortBy: SortBy.None },
 ];
 
 // sortQueues takes a array of queues and return a sorted array.
@@ -146,13 +152,17 @@ export default function QueuesOverviewTable(props: Props) {
           <TableRow>
             {columnConfig.map((cfg, i) => (
               <TableCell key={cfg.key} align={i === 0 ? "left" : "right"}>
-                <TableSortLabel
-                  active={sortBy === cfg.sortBy}
-                  direction={sortDir}
-                  onClick={createSortClickHandler(cfg.sortBy)}
-                >
-                  {cfg.label}
-                </TableSortLabel>
+                {cfg.sortBy !== SortBy.None ? (
+                  <TableSortLabel
+                    active={sortBy === cfg.sortBy}
+                    direction={sortDir}
+                    onClick={createSortClickHandler(cfg.sortBy)}
+                  >
+                    {cfg.label}
+                  </TableSortLabel>
+                ) : (
+                  <div>{cfg.label}</div>
+                )}
               </TableCell>
             ))}
           </TableRow>
@@ -165,7 +175,10 @@ export default function QueuesOverviewTable(props: Props) {
                 scope="row"
                 className={classes.linkCell}
               >
-                <Link to={queueDetailsPath(q.queue)}>{q.queue}</Link>
+                <Link to={queueDetailsPath(q.queue)}>
+                  {q.queue}
+                  {q.paused ? " (paused)" : ""}
+                </Link>
               </TableCell>
               <TableCell align="right">{q.size}</TableCell>
               <TableCell align="right">{q.active}</TableCell>
@@ -175,6 +188,23 @@ export default function QueuesOverviewTable(props: Props) {
               <TableCell align="right">{q.dead}</TableCell>
               <TableCell align="right">{q.processed}</TableCell>
               <TableCell align="right">{q.failed}</TableCell>
+              <TableCell align="right">
+                {q.paused ? (
+                  <IconButton
+                    color="secondary"
+                    onClick={() => console.log("resume the queue", q.queue)}
+                  >
+                    <PlayCircleFilledIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    color="primary"
+                    onClick={() => console.log("pause the queue", q.queue)}
+                  >
+                    <PauseCircleFilledIcon />
+                  </IconButton>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
