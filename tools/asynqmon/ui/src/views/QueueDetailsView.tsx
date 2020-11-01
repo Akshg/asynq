@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
 import { useParams } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
@@ -15,7 +15,9 @@ import Copyright from "../components/Copyright";
 import CurrentStats from "../components/CurrentStats";
 import ErrorRatePanel from "../components/ErrorRatePanel";
 import HistoryStats from "../components/HistoryStats";
-import { DailyStat, getQueue, Queue } from "../api";
+import { getQueueAsync, pauseQueueAsync, resumeQueueAsync } from "../actions";
+import { AppState } from "../store";
+import { connect, ConnectedProps } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -40,29 +42,40 @@ interface RouteParams {
   qname: string;
 }
 
-interface Props {
-  pollInterval: number; // polling interval in seconds.
+function mapStateToProps(state: AppState) {
+  return { queues: state.queues.data };
 }
+
+const mapDispatchToProps = {
+  getQueueAsync,
+  pauseQueueAsync,
+  resumeQueueAsync,
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+type Props = PropsFromRedux & {
+  pollInterval: number; // polling interval in seconds.
+};
 
 function QueueDetailsView(props: Props) {
   const classes = useStyles();
-  const [queueInfo, setQueueInfo] = useState<Queue | null>(null);
-  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
   const { qname } = useParams<RouteParams>();
+  const queueInfo = props.queues.find((q) => q.name === qname) || null;
+  const { getQueueAsync, pollInterval } = props;
 
   useEffect(() => {
-    const loadData = () => {
-      getQueue(qname).then((data) => {
-        setQueueInfo(data.current);
-        setDailyStats(data.history);
-      });
-    };
-    loadData();
-    const handle = setInterval(loadData, props.pollInterval * 1000);
-    return () => clearInterval(handle);
-  }, [props.pollInterval, qname]);
+    getQueueAsync(qname);
+    const interval = setInterval(
+      () => getQueueAsync(qname),
+      pollInterval * 1000
+    );
+    return () => clearInterval(interval);
+  }, [pollInterval, qname, getQueueAsync]);
 
-  const isPaused = queueInfo !== null && queueInfo.paused;
+  const isPaused = queueInfo !== null && queueInfo.currentStats.paused;
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   return (
     <Container maxWidth="lg" className={classes.container}>
@@ -79,6 +92,8 @@ function QueueDetailsView(props: Props) {
               variant="outlined"
               color="primary"
               startIcon={<PlayCircleFilledIcon />}
+              onClick={() => props.resumeQueueAsync(qname)}
+              disabled={queueInfo !== null && queueInfo.pauseRequestPending}
             >
               Resume
             </Button>
@@ -87,6 +102,8 @@ function QueueDetailsView(props: Props) {
               variant="outlined"
               color="primary"
               startIcon={<PauseCircleFilledIcon />}
+              onClick={() => props.pauseQueueAsync(qname)}
+              disabled={queueInfo !== null && queueInfo.pauseRequestPending}
             >
               Pause
             </Button>
@@ -95,11 +112,13 @@ function QueueDetailsView(props: Props) {
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
             <CurrentStats
-              active={queueInfo !== null ? queueInfo.active : 0}
-              pending={queueInfo !== null ? queueInfo.pending : 0}
-              scheduled={queueInfo !== null ? queueInfo.scheduled : 0}
-              retry={queueInfo !== null ? queueInfo.retry : 0}
-              dead={queueInfo !== null ? queueInfo.dead : 0}
+              active={queueInfo !== null ? queueInfo.currentStats.active : 0}
+              pending={queueInfo !== null ? queueInfo.currentStats.pending : 0}
+              scheduled={
+                queueInfo !== null ? queueInfo.currentStats.scheduled : 0
+              }
+              retry={queueInfo !== null ? queueInfo.currentStats.retry : 0}
+              dead={queueInfo !== null ? queueInfo.currentStats.dead : 0}
             />
           </Paper>
         </Grid>
@@ -111,14 +130,16 @@ function QueueDetailsView(props: Props) {
         <Grid item xs={12} md={4} lg={3}>
           <Paper className={fixedHeightPaper} variant="outlined">
             <ErrorRatePanel
-              processed={queueInfo !== null ? queueInfo.processed : 0}
-              failed={queueInfo !== null ? queueInfo.failed : 0}
+              processed={
+                queueInfo !== null ? queueInfo.currentStats.processed : 0
+              }
+              failed={queueInfo !== null ? queueInfo.currentStats.failed : 0}
             />
           </Paper>
         </Grid>
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
-            <HistoryStats data={dailyStats} />
+            <HistoryStats data={queueInfo !== null ? queueInfo.history : []} />
           </Paper>
         </Grid>
       </Grid>
@@ -129,7 +150,7 @@ function QueueDetailsView(props: Props) {
   );
 }
 
-export default QueueDetailsView;
+export default connector(QueueDetailsView);
 
 function createDataPoint(
   time: string,

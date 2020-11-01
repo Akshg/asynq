@@ -1,4 +1,6 @@
 import {
+  getQueue,
+  GetQueueResponse,
   listQueues,
   ListQueuesResponse,
   pauseQueue,
@@ -9,6 +11,9 @@ import { Dispatch } from "redux";
 // List of queue related action types.
 export const LIST_QUEUES_BEGIN = "LIST_QUEUES_BEGIN";
 export const LIST_QUEUES_SUCCESS = "LIST_QUEUES_SUCCESS";
+export const GET_QUEUE_BEGIN = "GET_QUEUE_BEGIN";
+export const GET_QUEUE_SUCCESS = "GET_QUEUE_SUCCESS";
+export const GET_QUEUE_ERROR = "GET_QUEUE_ERROR";
 export const PAUSE_QUEUE_BEGIN = "PAUSE_QUEUE_BEGIN";
 export const PAUSE_QUEUE_SUCCESS = "PAUSE_QUEUE_SUCCESS";
 export const PAUSE_QUEUE_ERROR = "PAUSE_QUEUE_ERROR";
@@ -23,6 +28,23 @@ interface ListQueuesBeginAction {
 interface ListQueuesSuccessAction {
   type: typeof LIST_QUEUES_SUCCESS;
   payload: ListQueuesResponse;
+}
+
+interface GetQueueBeginAction {
+  type: typeof GET_QUEUE_BEGIN;
+  queue: string; // name of the queue
+}
+
+interface GetQueueSuccessAction {
+  type: typeof GET_QUEUE_SUCCESS;
+  queue: string; // name of the queue
+  payload: GetQueueResponse;
+}
+
+interface GetQueueErrorAction {
+  type: typeof GET_QUEUE_ERROR;
+  queue: string; // name of the queue
+  error: string; // error description
 }
 
 interface PauseQueueBeginAction {
@@ -61,6 +83,9 @@ interface ResumeQueueErrorAction {
 export type QueuesActionTypes =
   | ListQueuesBeginAction
   | ListQueuesSuccessAction
+  | GetQueueBeginAction
+  | GetQueueSuccessAction
+  | GetQueueErrorAction
   | PauseQueueBeginAction
   | PauseQueueSuccessAction
   | PauseQueueErrorAction
@@ -77,6 +102,26 @@ export function listQueuesAsync() {
       type: LIST_QUEUES_SUCCESS,
       payload: response,
     });
+  };
+}
+
+export function getQueueAsync(qname: string) {
+  return async (dispatch: Dispatch<QueuesActionTypes>) => {
+    dispatch({ type: GET_QUEUE_BEGIN, queue: qname });
+    try {
+      const response = await getQueue(qname);
+      dispatch({
+        type: GET_QUEUE_SUCCESS,
+        queue: qname,
+        payload: response,
+      });
+    } catch {
+      dispatch({
+        type: GET_QUEUE_ERROR,
+        queue: qname,
+        error: `Could not retrieve queue data for queue: ${qname}`,
+      });
+    }
   };
 }
 

@@ -8,6 +8,7 @@ import {
   RESUME_QUEUE_BEGIN,
   RESUME_QUEUE_ERROR,
   RESUME_QUEUE_SUCCESS,
+  GET_QUEUE_SUCCESS,
 } from "../actions";
 import { DailyStat, Queue } from "../api";
 
@@ -45,6 +46,17 @@ function queuesReducer(
           pauseRequestPending: false,
         })),
       };
+
+    case GET_QUEUE_SUCCESS:
+      const newData = state.data
+        .filter((queueInfo) => queueInfo.name !== action.queue)
+        .concat({
+          name: action.queue,
+          currentStats: action.payload.current,
+          history: action.payload.history,
+          pauseRequestPending: false,
+        });
+      return { ...state, data: newData };
 
     case PAUSE_QUEUE_BEGIN:
     case RESUME_QUEUE_BEGIN: {
