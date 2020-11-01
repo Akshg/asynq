@@ -4,7 +4,7 @@ import Container from "@material-ui/core/Container";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import { listQueuesAsync } from "../actions";
+import { listQueuesAsync, pauseQueueAsync, resumeQueueAsync } from "../actions";
 import QueuesOverviewTable from "../components/QueuesOverviewTable";
 import { AppState } from "../store";
 
@@ -24,12 +24,17 @@ const useStyles = makeStyles((theme) => ({
 function mapStateToProps(state: AppState) {
   return {
     loading: state.queues.loading,
-    queues: state.queues.data.map((q) => q.currentStats),
+    queues: state.queues.data.map((q) => ({
+      ...q.currentStats,
+      pauseRequestPending: q.pauseRequestPending,
+    })),
   };
 }
 
 const mapDispatchToProps = {
   listQueuesAsync,
+  pauseQueueAsync,
+  resumeQueueAsync,
 };
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
@@ -56,7 +61,11 @@ function DashboardView(props: Props) {
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
             {/* TODO: Add loading indicator  */}
-            <QueuesOverviewTable queues={queues} />
+            <QueuesOverviewTable
+              queues={queues}
+              onPauseClick={props.pauseQueueAsync}
+              onResumeClick={props.resumeQueueAsync}
+            />
           </Paper>
         </Grid>
       </Grid>

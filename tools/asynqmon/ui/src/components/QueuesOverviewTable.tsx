@@ -30,8 +30,14 @@ const useStyles = makeStyles({
   },
 });
 
+interface QueueWithMetadata extends Queue {
+  pauseRequestPending: boolean; // indicates pause/resume request is pending for the queue.
+}
+
 interface Props {
-  queues: Queue[];
+  queues: QueueWithMetadata[];
+  onPauseClick: (qname: string) => Promise<void>;
+  onResumeClick: (qname: string) => Promise<void>;
 }
 
 enum SortBy {
@@ -69,9 +75,9 @@ const columnConfig = [
 // sortQueues takes a array of queues and return a sorted array.
 // It returns a new array and leave the original array untouched.
 function sortQueues(
-  queues: Queue[],
-  cmpFn: (first: Queue, second: Queue) => number
-): Queue[] {
+  queues: QueueWithMetadata[],
+  cmpFn: (first: QueueWithMetadata, second: QueueWithMetadata) => number
+): QueueWithMetadata[] {
   let copy = [...queues];
   copy.sort(cmpFn);
   return copy;
@@ -95,7 +101,7 @@ export default function QueuesOverviewTable(props: Props) {
     }
   };
 
-  const cmpFunc = (q1: Queue, q2: Queue): number => {
+  const cmpFunc = (q1: QueueWithMetadata, q2: QueueWithMetadata): number => {
     let isQ1Smaller: boolean;
     switch (sortBy) {
       case SortBy.Queue:
@@ -192,14 +198,16 @@ export default function QueuesOverviewTable(props: Props) {
                 {q.paused ? (
                   <IconButton
                     color="secondary"
-                    onClick={() => console.log("resume the queue", q.queue)}
+                    onClick={() => props.onResumeClick(q.queue)}
+                    disabled={q.pauseRequestPending}
                   >
                     <PlayCircleFilledIcon />
                   </IconButton>
                 ) : (
                   <IconButton
                     color="primary"
-                    onClick={() => console.log("pause the queue", q.queue)}
+                    onClick={() => props.onPauseClick(q.queue)}
+                    disabled={q.pauseRequestPending}
                   >
                     <PauseCircleFilledIcon />
                   </IconButton>

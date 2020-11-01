@@ -2,6 +2,12 @@ import {
   LIST_QUEUES_SUCCESS,
   LIST_QUEUES_BEGIN,
   QueuesActionTypes,
+  PAUSE_QUEUE_BEGIN,
+  PAUSE_QUEUE_SUCCESS,
+  PAUSE_QUEUE_ERROR,
+  RESUME_QUEUE_BEGIN,
+  RESUME_QUEUE_ERROR,
+  RESUME_QUEUE_SUCCESS,
 } from "../actions";
 import { DailyStat, Queue } from "../api";
 
@@ -11,8 +17,10 @@ interface QueuesState {
 }
 
 interface QueueInfo {
+  name: string; // name of the queue.
   currentStats: Queue;
   history: DailyStat[];
+  pauseRequestPending: boolean; // indicates pause/resume action is pending on this queue
 }
 
 const initialState: QueuesState = { data: [], loading: false };
@@ -30,8 +38,66 @@ function queuesReducer(
       return {
         ...state,
         loading: false,
-        data: queues.map((q: Queue) => ({ currentStats: q, history: [] })),
+        data: queues.map((q: Queue) => ({
+          name: q.queue,
+          currentStats: q,
+          history: [],
+          pauseRequestPending: false,
+        })),
       };
+
+    case PAUSE_QUEUE_BEGIN:
+    case RESUME_QUEUE_BEGIN: {
+      const newData = state.data.map((queueInfo) => {
+        if (queueInfo.name !== action.queue) {
+          return queueInfo;
+        }
+        return { ...queueInfo, pauseRequestPending: true };
+      });
+      return { ...state, data: newData };
+    }
+
+    case PAUSE_QUEUE_SUCCESS: {
+      const newData = state.data.map((queueInfo) => {
+        if (queueInfo.name !== action.queue) {
+          return queueInfo;
+        }
+        return {
+          ...queueInfo,
+          pauseRequestPending: false,
+          currentStats: { ...queueInfo.currentStats, paused: true },
+        };
+      });
+      return { ...state, data: newData };
+    }
+
+    case RESUME_QUEUE_SUCCESS: {
+      const newData = state.data.map((queueInfo) => {
+        if (queueInfo.name !== action.queue) {
+          return queueInfo;
+        }
+        return {
+          ...queueInfo,
+          pauseRequestPending: false,
+          currentStats: { ...queueInfo.currentStats, paused: false },
+        };
+      });
+      return { ...state, data: newData };
+    }
+
+    case PAUSE_QUEUE_ERROR:
+    case RESUME_QUEUE_ERROR: {
+      const newData = state.data.map((queueInfo) => {
+        if (queueInfo.name !== action.queue) {
+          return queueInfo;
+        }
+        return {
+          ...queueInfo,
+          pauseRequestPending: false,
+        };
+      });
+      return { ...state, data: newData };
+    }
 
     default:
       return state;
