@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { connect, ConnectedProps } from "react-redux";
 import Container from "@material-ui/core/Container";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import { listQueues, Queue } from "../api";
+import { listQueuesAsync } from "../actions";
 import QueuesOverviewTable from "../components/QueuesOverviewTable";
+import { AppState } from "../store";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -19,24 +21,34 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-interface Props {
-  pollInterval: number; // polling interval in seconds.
+function mapStateToProps(state: AppState) {
+  return {
+    loading: state.queues.loading,
+    queues: state.queues.data.map((q) => q.currentStats),
+  };
 }
 
+const mapDispatchToProps = {
+  listQueuesAsync,
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+type Props = PropsFromRedux & {
+  pollInterval: number; // polling interval in seconds.
+};
+
 function DashboardView(props: Props) {
+  const { pollInterval, listQueuesAsync, queues } = props;
   const classes = useStyles();
-  const [queues, setQueues] = useState<Queue[]>([]);
 
   useEffect(() => {
-    const loadQueues = () => {
-      listQueues().then((data) => {
-        setQueues(data.queues);
-      });
-    };
-    loadQueues();
-    const handle = setInterval(loadQueues, props.pollInterval * 1000);
-    return () => clearInterval(handle);
-  }, [props.pollInterval]);
+    listQueuesAsync();
+    const interval = setInterval(listQueuesAsync, pollInterval * 1000);
+    return () => clearInterval(interval);
+  }, [pollInterval, listQueuesAsync]);
 
   return (
     <Container maxWidth="lg" className={classes.container}>
@@ -52,4 +64,4 @@ function DashboardView(props: Props) {
   );
 }
 
-export default DashboardView;
+export default connector(DashboardView);

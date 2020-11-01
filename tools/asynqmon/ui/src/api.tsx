@@ -2,11 +2,11 @@ import axios from "axios";
 
 const BASE_URL = "http://localhost:8080/api";
 
-interface ListQueuesResponse {
+export interface ListQueuesResponse {
   queues: Queue[];
 }
 
-interface GetQueueResponse {
+export interface GetQueueResponse {
   current: Queue;
   history: DailyStat[];
 }
