@@ -109,9 +109,11 @@ function QueueDetailsView(props: Props) {
             </Button>
           )}
         </Grid>
+
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
             <CurrentStats
+              queue={qname}
               active={queueInfo !== null ? queueInfo.currentStats.active : 0}
               pending={queueInfo !== null ? queueInfo.currentStats.pending : 0}
               scheduled={

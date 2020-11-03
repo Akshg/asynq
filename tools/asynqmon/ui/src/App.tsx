@@ -17,6 +17,7 @@ import CronView from "./views/CronView";
 import QueueDetailsView from "./views/QueueDetailsView";
 import DashboardView from "./views/DashboardView";
 import ListItemLink from "./components/ListItemLink";
+import TasksView from "./views/TasksView";
 
 const drawerWidth = 220;
 
@@ -75,9 +76,10 @@ const useStyles = makeStyles((theme) => ({
     width: "100vw",
   },
   content: {
-    flexGrow: 1,
+    flex: 1,
     height: "100vh",
-    overflow: "auto",
+    overflow: "hidden",
+    background: "#ffffff",
   },
   slider: {
     width: "200px",
@@ -85,12 +87,10 @@ const useStyles = makeStyles((theme) => ({
   },
   sliderLabel: {
     fontSize: "12px",
-    paddingTop: "16px",
-    paddingBottom: "4px",
   },
 }));
 
-const initialSliderValue = 4;
+const initialSliderValue = 8;
 
 function App() {
   const classes = useStyles();
@@ -173,7 +173,7 @@ function App() {
               <div>
                 <ListItemLink
                   to="/"
-                  primary="Dashboard"
+                  primary="Queues"
                   icon={<DashboardIcon />}
                 />
                 <ListItemLink to="/cron" primary="Cron" icon={<LayersIcon />} />
@@ -183,10 +183,13 @@ function App() {
           <main className={classes.content}>
             <div className={classes.appBarSpacer} />
             <Switch>
-              <Route path={paths.QUEUE_DETAILS}>
+              <Route exact path={paths.QUEUE_DETAILS}>
                 <QueueDetailsView pollInterval={pollInterval} />
               </Route>
-              <Route path={paths.CRON}>
+              <Route exact path={paths.TASKS}>
+                <TasksView />
+              </Route>
+              <Route exact path={paths.CRON}>
                 <CronView />
               </Route>
               <Route path={paths.HOME}>

@@ -11,6 +11,10 @@ import {
 } from "react-router-dom";
 
 const useStyles = makeStyles({
+  listItem: {
+    borderTopRightRadius: "24px",
+    borderBottomRightRadius: "24px",
+  },
   selected: {
     backgroundColor: "rgba(0, 0, 0, 0.04)",
   },
@@ -44,7 +48,7 @@ function ListItemLink(props: Props): ReactElement {
       <ListItem
         button
         component={renderLink}
-        className={clsx(isMatch && classes.selected)}
+        className={clsx(classes.listItem, isMatch && classes.selected)}
       >
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
         <ListItemText primary={primary} />

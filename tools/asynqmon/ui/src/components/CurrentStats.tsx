@@ -1,8 +1,11 @@
 import React, { ReactElement } from "react";
 import { makeStyles } from "@material-ui/core/styles";
+import { Link } from "react-router-dom";
 import Typography from "@material-ui/core/Typography";
+import { tasksPath } from "../paths";
 
 interface Props {
+  queue: string; // name of the queue
   active: number;
   pending: number;
   scheduled: number;
@@ -22,28 +25,29 @@ const useStyles = makeStyles({
 
 function CurrentStats(props: Props): ReactElement {
   const classes = useStyles();
+  const { queue } = props;
   return (
     <div className={classes.root}>
-      <div className={classes.item}>
+      <Link to={tasksPath(queue, "active")} className={classes.item}>
         <Typography variant="h6">{props.active}</Typography>
         <Typography color="textSecondary">Active</Typography>
-      </div>
-      <div className={classes.item}>
+      </Link>
+      <Link to={tasksPath(queue, "pending")} className={classes.item}>
         <Typography variant="h6">{props.pending}</Typography>
         <Typography color="textSecondary">Pending</Typography>
-      </div>
-      <div className={classes.item}>
+      </Link>
+      <Link to={tasksPath(queue, "scheduled")} className={classes.item}>
         <Typography variant="h6">{props.scheduled}</Typography>
         <Typography color="textSecondary">Scheduled</Typography>
-      </div>
-      <div className={classes.item}>
+      </Link>
+      <Link to={tasksPath(queue, "retry")} className={classes.item}>
         <Typography variant="h6">{props.retry}</Typography>
         <Typography color="textSecondary">Retry</Typography>
-      </div>
-      <div className={classes.item}>
+      </Link>
+      <Link to={tasksPath(queue, "dead")} className={classes.item}>
         <Typography variant="h6">{props.dead}</Typography>
         <Typography color="textSecondary">Dead</Typography>
-      </div>
+      </Link>
     </div>
   );
 }
