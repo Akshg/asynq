@@ -9,15 +9,15 @@ import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import Slider from "@material-ui/core/Slider";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import LayersIcon from "@material-ui/icons/Layers";
+import SettingsIcon from "@material-ui/icons/Settings";
 import { paths } from "./paths";
-import CronView from "./views/CronView";
-import QueueDetailsView from "./views/QueueDetailsView";
-import DashboardView from "./views/DashboardView";
 import ListItemLink from "./components/ListItemLink";
+import CronView from "./views/CronView";
+import DashboardView from "./views/DashboardView";
 import TasksView from "./views/TasksView";
+import SettingsView from "./views/SettingsView";
 
 const drawerWidth = 220;
 
@@ -81,32 +81,24 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
     background: "#ffffff",
   },
-  slider: {
-    width: "200px",
-    minWidth: "180px",
+  contentWrapper: {
+    height: "100%",
+    display: "flex",
+    paddingTop: "64px", // app-bar height
   },
-  sliderLabel: {
-    fontSize: "12px",
+  sidebarContainer: {
+    display: "flex",
+    justifyContent: "space-between",
+    height: "100%",
+    flexDirection: "column",
   },
 }));
-
-const initialSliderValue = 8;
 
 function App() {
   const classes = useStyles();
   const [open, setOpen] = useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
-  };
-  // Note: We need to keep `sliderValue` and `pollInterval` distinct
-  // to avoid changing `pollInterval` while user is using the slider the change the value.
-  const [sliderValue, setSliderValue] = useState(initialSliderValue);
-  const handleSliderValueChange = (event: any, val: number | number[]) => {
-    setSliderValue(val as number);
-  };
-  const [pollInterval, setPollInterval] = useState(initialSliderValue);
-  const handleSliderValueCommited = (event: any, val: number | number[]) => {
-    setPollInterval(val as number);
   };
   return (
     <Router>
@@ -135,26 +127,6 @@ function App() {
             >
               Asynq Monitoring
             </Typography>
-            <div className={classes.slider}>
-              <Typography
-                gutterBottom
-                color="primary"
-                className={classes.sliderLabel}
-              >
-                Polling Interval (Every {sliderValue} seconds)
-              </Typography>
-              <Slider
-                value={sliderValue}
-                onChange={handleSliderValueChange}
-                onChangeCommitted={handleSliderValueCommited}
-                aria-labelledby="continuous-slider"
-                valueLabelDisplay="auto"
-                step={1}
-                marks={true}
-                min={2}
-                max={20}
-              />
-            </div>
           </Toolbar>
         </AppBar>
         <div className={classes.mainContainer}>
@@ -169,33 +141,47 @@ function App() {
             open={open}
           >
             <div className={classes.appBarSpacer} />
-            <List>
-              <div>
+            <div className={classes.sidebarContainer}>
+              <List>
+                <div>
+                  <ListItemLink
+                    to="/"
+                    primary="Queues"
+                    icon={<DashboardIcon />}
+                  />
+                  <ListItemLink
+                    to="/cron"
+                    primary="Cron"
+                    icon={<LayersIcon />}
+                  />
+                </div>
+              </List>
+              <List>
                 <ListItemLink
-                  to="/"
-                  primary="Queues"
-                  icon={<DashboardIcon />}
+                  to="/settings"
+                  primary="Settings"
+                  icon={<SettingsIcon />}
                 />
-                <ListItemLink to="/cron" primary="Cron" icon={<LayersIcon />} />
-              </div>
-            </List>
+              </List>
+            </div>
           </Drawer>
           <main className={classes.content}>
-            <div className={classes.appBarSpacer} />
-            <Switch>
-              <Route exact path={paths.QUEUE_DETAILS}>
-                <QueueDetailsView pollInterval={pollInterval} />
-              </Route>
-              <Route exact path={paths.TASKS}>
-                <TasksView />
-              </Route>
-              <Route exact path={paths.CRON}>
-                <CronView />
-              </Route>
-              <Route path={paths.HOME}>
-                <DashboardView pollInterval={pollInterval} />
-              </Route>
-            </Switch>
+            <div className={classes.contentWrapper}>
+              <Switch>
+                <Route exact path={paths.QUEUE_DETAILS}>
+                  <TasksView />
+                </Route>
+                <Route exact path={paths.CRON}>
+                  <CronView />
+                </Route>
+                <Route exact path={paths.SETTINGS}>
+                  <SettingsView />
+                </Route>
+                <Route path={paths.HOME}>
+                  <DashboardView />
+                </Route>
+              </Switch>
+            </div>
           </main>
         </div>
       </div>

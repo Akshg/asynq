@@ -9,7 +9,7 @@ import {
   RESUME_QUEUE_ERROR,
   RESUME_QUEUE_SUCCESS,
   GET_QUEUE_SUCCESS,
-} from "../actions";
+} from "../actions/queuesActions";
 import { DailyStat, Queue } from "../api";
 
 interface QueuesState {

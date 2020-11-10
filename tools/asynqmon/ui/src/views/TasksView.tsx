@@ -3,11 +3,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import TasksTable from "../components/TasksTable";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   container: {
     paddingLeft: 0,
+    marginLeft: 0,
     height: "100%",
   },
   gridContainer: {
@@ -20,19 +21,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function useQuery(): URLSearchParams {
+  return new URLSearchParams(useLocation().search);
+}
+
 interface RouteParams {
   qname: string;
-  state: string;
 }
+
+const defaultStatus = "active";
 
 function TasksView() {
   const classes = useStyles();
-  const { state: selectedState, qname } = useParams<RouteParams>();
+  const { qname } = useParams<RouteParams>();
+  const query = useQuery();
+  const selected = query.get("status") || defaultStatus;
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={0} className={classes.gridContainer}>
         <Grid item xs={12} className={classes.gridItem}>
-          <TasksTable queue={qname} selected={selectedState} />
+          <TasksTable queue={qname} selected={selected} />
         </Grid>
       </Grid>
     </Container>

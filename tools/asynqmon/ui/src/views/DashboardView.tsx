@@ -4,7 +4,11 @@ import Container from "@material-ui/core/Container";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import { listQueuesAsync, pauseQueueAsync, resumeQueueAsync } from "../actions";
+import {
+  listQueuesAsync,
+  pauseQueueAsync,
+  resumeQueueAsync,
+} from "../actions/queuesActions";
 import QueuesOverviewTable from "../components/QueuesOverviewTable";
 import { AppState } from "../store";
 
@@ -28,6 +32,7 @@ function mapStateToProps(state: AppState) {
       ...q.currentStats,
       pauseRequestPending: q.pauseRequestPending,
     })),
+    pollInterval: state.settings.pollInterval,
   };
 }
 
@@ -39,11 +44,7 @@ const mapDispatchToProps = {
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
-type PropsFromRedux = ConnectedProps<typeof connector>;
-
-type Props = PropsFromRedux & {
-  pollInterval: number; // polling interval in seconds.
-};
+type Props = ConnectedProps<typeof connector>;
 
 function DashboardView(props: Props) {
   const { pollInterval, listQueuesAsync, queues } = props;

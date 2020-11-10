@@ -9,7 +9,9 @@ import ScheduledTasksTable from "./ScheduledTasksTable";
 import RetryTasksTable from "./RetryTasksTable";
 import DeadTasksTable from "./DeadTasksTable";
 import { useHistory } from "react-router-dom";
-import { tasksPath } from "../paths";
+import { queueDetailsPath } from "../paths";
+import { Typography } from "@material-ui/core";
+import Paper from "@material-ui/core/Paper/Paper";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -19,6 +21,7 @@ interface TabPanelProps {
 
 const TabPanelRoot = styled.div`
   flex: 1;
+  overflow-y: scroll;
 `;
 
 function TabPanel(props: TabPanelProps) {
@@ -69,7 +72,6 @@ const Heading = styled.div`
 const PanelContainer = styled.div`
   padding: 24px;
   background: #ffffff;
-  height: 100%;
 `;
 
 const TabsContainer = styled.div`
@@ -77,6 +79,12 @@ const TabsContainer = styled.div`
 `;
 
 const useStyles = makeStyles((theme) => ({
+  paper: {
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    display: "flex",
+    justifyContent: "space-between",
+  },
   heading: {
     padingLeft: theme.spacing(2),
   },
@@ -102,6 +110,39 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function PanelHeading(props: { queue: string; processed: number }) {
+  const classes = useStyles();
+  return (
+    <Paper className={classes.paper}>
+      <div>
+        <Typography variant="overline" display="block">
+          Queue Name
+        </Typography>
+        <Typography variant="h5">{props.queue}</Typography>
+      </div>
+
+      <div>
+        <Typography variant="overline" display="block">
+          Processed Today (UTC)
+        </Typography>
+        <Typography variant="h5">{props.processed}</Typography>
+      </div>
+      <div>
+        <Typography variant="overline" display="block">
+          Failed Today (UTC)
+        </Typography>
+        <Typography variant="h5">53</Typography>
+      </div>
+      <div>
+        <Typography variant="overline" display="block">
+          Paused
+        </Typography>
+        <Typography variant="h5">No</Typography>
+      </div>
+    </Paper>
+  );
+}
+
 interface Props {
   queue: string;
   selected: string;
@@ -117,7 +158,7 @@ function TasksTable(props: Props) {
         <Tabs
           value={props.selected}
           onChange={(_, value: string) =>
-            history.push(tasksPath(props.queue, value))
+            history.push(queueDetailsPath(props.queue, value))
           }
           aria-label="tasks table"
           orientation="vertical"
@@ -182,26 +223,31 @@ function TasksTable(props: Props) {
       </TabsContainer>
       <TabPanel value="active" selected={props.selected}>
         <PanelContainer>
+          <PanelHeading queue={props.queue} processed={13243} />
           <ActiveTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="pending" selected={props.selected}>
         <PanelContainer>
+          <PanelHeading queue={props.queue} processed={13243} />
           <PendingTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="scheduled" selected={props.selected}>
         <PanelContainer>
+          <PanelHeading queue={props.queue} processed={13243} />
           <ScheduledTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="retry" selected={props.selected}>
         <PanelContainer>
+          <PanelHeading queue={props.queue} processed={13243} />
           <RetryTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="dead" selected={props.selected}>
         <PanelContainer>
+          <PanelHeading queue={props.queue} processed={13243} />
           <DeadTasksTable />
         </PanelContainer>
       </TabPanel>

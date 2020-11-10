@@ -1,7 +1,9 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import settingsReducer from "./reducers/settingsReducer";
 import queuesReducer from "./reducers/queuesReducer";
 
 const rootReducer = combineReducers({
+  settings: settingsReducer,
   queues: queuesReducer,
 });
 

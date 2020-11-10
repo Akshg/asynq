@@ -1,14 +1,14 @@
 export const paths = {
   HOME: "/",
+  SETTINGS: "/settings",
   CRON: "/cron",
   QUEUE_DETAILS: "/queues/:qname",
-  TASKS: "/queues/:qname/tasks/:state",
 };
 
-export function queueDetailsPath(qname: string): string {
-  return paths.QUEUE_DETAILS.replace(":qname", qname);
-}
-
-export function tasksPath(qname: string, state: string): string {
-  return paths.TASKS.replace(":qname", qname).replace(":state", state);
+export function queueDetailsPath(qname: string, taskStatus?: string): string {
+  const path = paths.QUEUE_DETAILS.replace(":qname", qname);
+  if (taskStatus) {
+    return `${path}?status=${taskStatus}`;
+  }
+  return path;
 }
