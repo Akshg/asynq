@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/mux"
-	"github.com/hibiken/asynq/internal/rdb"
+	"github.com/hibiken/asynq"
 	"github.com/rs/cors"
 )
 
@@ -58,23 +56,35 @@ func (srv *staticFileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.Dir(srv.staticPath)).ServeHTTP(w, r)
 }
 
-var redisClient *rdb.RDB
-
 const addr = "127.0.0.1:8080"
 
 func main() {
-	redisClient = rdb.NewRDB(redis.NewClient(&redis.Options{
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{
 		Addr: "localhost:6379",
-	}))
-	defer redisClient.Close()
+	})
+	defer inspector.Close()
 
 	router := mux.NewRouter()
 
 	api := router.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/queues", handleListQueues).Methods("GET")
-	api.HandleFunc("/queues/{qname}", handleGetQueue).Methods("GET")
-	api.HandleFunc("/queues/{qname}/pause", handlePauseQueue).Methods("POST")
-	api.HandleFunc("/queues/{qname}/resume", handleResumeQueue).Methods("POST")
+	api.HandleFunc("/queues",
+		newListQueuesHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}",
+		newGetQueueHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}/pause",
+		newPauseQueueHandlerFunc(inspector)).Methods("POST")
+	api.HandleFunc("/queues/{qname}/resume",
+		newResumeQueueHandlerFunc(inspector)).Methods("POST")
+	api.HandleFunc("/queues/{qname}/active_tasks",
+		newListActiveTasksHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}/pending_tasks",
+		newListPendingTasksHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}/scheduled_tasks",
+		newListScheduledTasksHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}/retry_tasks",
+		newListRetryTasksHandlerFunc(inspector)).Methods("GET")
+	api.HandleFunc("/queues/{qname}/dead_tasks",
+		newListDeadTasksHandlerFunc(inspector)).Methods("GET")
 
 	fs := &staticFileServer{staticPath: "ui/build", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(fs)
@@ -90,70 +100,4 @@ func main() {
 
 	fmt.Printf("Asynq Monitoring WebUI server is running on %s\n", addr)
 	log.Fatal(srv.ListenAndServe())
-}
-
-func handleListQueues(w http.ResponseWriter, r *http.Request) {
-	qnames, err := redisClient.AllQueues()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	var stats []*rdb.Stats
-	for _, qname := range qnames {
-		s, err := redisClient.CurrentStats(qname)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		stats = append(stats, s)
-	}
-	payload := map[string]interface{}{"queues": stats}
-	json.NewEncoder(w).Encode(payload)
-}
-
-func handleGetQueue(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	qname := vars["qname"]
-
-	payload := make(map[string]interface{})
-	stats, err := redisClient.CurrentStats(qname)
-	if err != nil {
-		notFoundErr, ok := err.(*rdb.ErrQueueNotFound)
-		if ok {
-			http.Error(w, notFoundErr.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	payload["current"] = stats
-
-	// TODO: make this n a variable
-	dailyStats, err := redisClient.HistoricalStats(qname, 10)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	payload["history"] = dailyStats
-	json.NewEncoder(w).Encode(payload)
-}
-
-func handlePauseQueue(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	qname := vars["qname"]
-	if err := redisClient.Pause(qname); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func handleResumeQueue(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	qname := vars["qname"]
-	if err := redisClient.Unpause(qname); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
 }

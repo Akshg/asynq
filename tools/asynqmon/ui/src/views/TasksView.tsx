@@ -29,13 +29,18 @@ interface RouteParams {
   qname: string;
 }
 
+const validStatus = ["active", "pending", "scheduled", "retry", "dead"];
 const defaultStatus = "active";
 
 function TasksView() {
   const classes = useStyles();
   const { qname } = useParams<RouteParams>();
   const query = useQuery();
-  const selected = query.get("status") || defaultStatus;
+  let selected = query.get("status");
+  if (!selected || !validStatus.includes(selected)) {
+    selected = defaultStatus;
+  }
+
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={0} className={classes.gridContainer}>

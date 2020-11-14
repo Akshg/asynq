@@ -18,5 +18,8 @@
 /tools/asynq/asynq
 /tools/asynqmon/asynqmon
 
+/tools/asynqmon/ui/node_modules
+/tools/asynqmon/ui/build
+
 # Ignore asynq config file
 .asynq.*
