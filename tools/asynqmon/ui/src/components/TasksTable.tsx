@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { connect, ConnectedProps } from "react-redux";
 import styled from "styled-components";
 import { makeStyles } from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
@@ -12,6 +13,9 @@ import { useHistory } from "react-router-dom";
 import { queueDetailsPath } from "../paths";
 import { Typography } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper/Paper";
+import { QueueInfo } from "../reducers/queuesReducer";
+import { AppState } from "../store";
+import { getQueueAsync } from "../actions/queuesActions";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -110,7 +114,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function PanelHeading(props: { queue: string; processed: number }) {
+function PanelHeading(props: {
+  queue: string;
+  processed: number;
+  failed: number;
+  paused: boolean;
+}) {
   const classes = useStyles();
   return (
     <Paper className={classes.paper}>
@@ -131,26 +140,71 @@ function PanelHeading(props: { queue: string; processed: number }) {
         <Typography variant="overline" display="block">
           Failed Today (UTC)
         </Typography>
-        <Typography variant="h5">53</Typography>
+        <Typography variant="h5">{props.failed}</Typography>
       </div>
       <div>
         <Typography variant="overline" display="block">
           Paused
         </Typography>
-        <Typography variant="h5">No</Typography>
+        <Typography variant="h5">{props.paused ? "YES" : "No"}</Typography>
       </div>
     </Paper>
   );
 }
+
+function mapStatetoProps(state: AppState, ownProps: Props) {
+  // TODO: Add loading state for each queue.
+  const queueInfo = state.queues.data.find(
+    (q: QueueInfo) => q.name === ownProps.queue
+  );
+  const currentStats = queueInfo
+    ? queueInfo.currentStats
+    : {
+        queue: ownProps.queue,
+        paused: false,
+        size: 0,
+        active: 0,
+        pending: 0,
+        scheduled: 0,
+        retry: 0,
+        dead: 0,
+        processed: 0,
+        failed: 0,
+        timestamp: "n/a",
+      };
+  return {
+    currentStats,
+    pollInterval: state.settings.pollInterval,
+  };
+}
+
+const mapDispatchToProps = {
+  getQueueAsync,
+};
+
+const connector = connect(mapStatetoProps, mapDispatchToProps);
+
+type ReduxProps = ConnectedProps<typeof connector>;
 
 interface Props {
   queue: string;
   selected: string;
 }
 
-function TasksTable(props: Props) {
+function TasksTable(props: Props & ReduxProps) {
+  const { pollInterval, getQueueAsync, queue, currentStats } = props;
   const classes = useStyles();
   const history = useHistory();
+
+  useEffect(() => {
+    getQueueAsync(queue);
+    const interval = setInterval(
+      () => getQueueAsync(queue),
+      pollInterval * 1000
+    );
+    return () => clearInterval(interval);
+  }, [pollInterval, getQueueAsync, queue]);
+
   return (
     <Container>
       <TabsContainer>
@@ -167,7 +221,7 @@ function TasksTable(props: Props) {
           <Tab
             value="active"
             label="Active"
-            icon={<TaskCount>0</TaskCount>}
+            icon={<TaskCount>{currentStats.active}</TaskCount>}
             classes={{
               root: classes.tabroot,
               wrapper: classes.tabwrapper,
@@ -178,7 +232,7 @@ function TasksTable(props: Props) {
           <Tab
             value="pending"
             label="Pending"
-            icon={<TaskCount>12</TaskCount>}
+            icon={<TaskCount>{currentStats.pending}</TaskCount>}
             classes={{
               root: classes.tabroot,
               wrapper: classes.tabwrapper,
@@ -189,7 +243,7 @@ function TasksTable(props: Props) {
           <Tab
             value="scheduled"
             label="Scheduled"
-            icon={<TaskCount>37</TaskCount>}
+            icon={<TaskCount>{currentStats.scheduled}</TaskCount>}
             classes={{
               root: classes.tabroot,
               wrapper: classes.tabwrapper,
@@ -200,7 +254,7 @@ function TasksTable(props: Props) {
           <Tab
             value="retry"
             label="Retry"
-            icon={<TaskCount>2</TaskCount>}
+            icon={<TaskCount>{currentStats.retry}</TaskCount>}
             classes={{
               root: classes.tabroot,
               wrapper: classes.tabwrapper,
@@ -211,7 +265,7 @@ function TasksTable(props: Props) {
           <Tab
             value="dead"
             label="Dead"
-            icon={<TaskCount>1</TaskCount>}
+            icon={<TaskCount>{currentStats.dead}</TaskCount>}
             classes={{
               root: classes.tabroot,
               wrapper: classes.tabwrapper,
@@ -223,31 +277,56 @@ function TasksTable(props: Props) {
       </TabsContainer>
       <TabPanel value="active" selected={props.selected}>
         <PanelContainer>
-          <PanelHeading queue={props.queue} processed={13243} />
-          <ActiveTasksTable />
+          <PanelHeading
+            queue={props.queue}
+            processed={currentStats.processed}
+            failed={currentStats.failed}
+            paused={currentStats.paused}
+          />
+          <ActiveTasksTable queue={props.queue} />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="pending" selected={props.selected}>
         <PanelContainer>
-          <PanelHeading queue={props.queue} processed={13243} />
-          <PendingTasksTable />
+          <PanelHeading
+            queue={props.queue}
+            processed={currentStats.processed}
+            failed={currentStats.failed}
+            paused={currentStats.paused}
+          />
+          <PendingTasksTable queue={props.queue} />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="scheduled" selected={props.selected}>
         <PanelContainer>
-          <PanelHeading queue={props.queue} processed={13243} />
+          <PanelHeading
+            queue={props.queue}
+            processed={currentStats.processed}
+            failed={currentStats.failed}
+            paused={currentStats.paused}
+          />
           <ScheduledTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="retry" selected={props.selected}>
         <PanelContainer>
-          <PanelHeading queue={props.queue} processed={13243} />
+          <PanelHeading
+            queue={props.queue}
+            processed={currentStats.processed}
+            failed={currentStats.failed}
+            paused={currentStats.paused}
+          />
           <RetryTasksTable />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="dead" selected={props.selected}>
         <PanelContainer>
-          <PanelHeading queue={props.queue} processed={13243} />
+          <PanelHeading
+            queue={props.queue}
+            processed={currentStats.processed}
+            failed={currentStats.failed}
+            paused={currentStats.paused}
+          />
           <DeadTasksTable />
         </PanelContainer>
       </TabPanel>
@@ -255,4 +334,4 @@ function TasksTable(props: Props) {
   );
 }
 
-export default TasksTable;
+export default connector(TasksTable);

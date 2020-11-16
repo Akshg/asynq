@@ -17,7 +17,7 @@ interface QueuesState {
   data: QueueInfo[];
 }
 
-interface QueueInfo {
+export interface QueueInfo {
   name: string; // name of the queue.
   currentStats: Queue;
   history: DailyStat[];

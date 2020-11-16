@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { connect, ConnectedProps } from "react-redux";
 import {
   makeStyles,
   useTheme,
@@ -8,6 +9,8 @@ import {
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 import Button from "@material-ui/core/Button";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
@@ -27,6 +30,9 @@ import FirstPageIcon from "@material-ui/icons/FirstPage";
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
+import { listActiveTasksAsync } from "../actions/tasksActions";
+import { AppState } from "../store";
+import { ActiveTask } from "../api";
 
 const useStyles = makeStyles({
   table: {
@@ -34,91 +40,26 @@ const useStyles = makeStyles({
   },
 });
 
-function createData(
-  id: string,
-  type: string,
-  payload: Object,
-  workerStarted: string,
-  timeBeforeDeadline: string
-) {
-  return { id, type, payload, workerStarted, timeBeforeDeadline };
+function mapStateToProps(state: AppState) {
+  return {
+    loading: state.tasks.activeTasks.loading,
+    tasks: state.tasks.activeTasks.data,
+    pollInterval: state.settings.pollInterval,
+  };
 }
 
-const rows = [
-  createData(
-    "jklfdjasf12323kjkldsaf",
-    "generate_thumbnail",
-    { userId: 13 },
-    "5s ago",
-    "29m55s"
-  ),
-  createData("fdfdfadsfdaskl123232jk", "reindex", {}, "1m ago", "29m"),
-  createData(
-    "fdafkd12343l333333332l",
-    "send_email",
-    { userId: 23 },
-    "1m ago",
-    "14m"
-  ),
-  createData(
-    "lklfdjasf12323kjkldsaf",
-    "send_email",
-    { userId: 32 },
-    "3s ago",
-    "29m57s"
-  ),
-  createData(
-    "7klfdjasf12323kjkldsaf",
-    "send_email",
-    { userId: 123 },
-    "10s ago",
-    "2m50s"
-  ),
-  createData(
-    "fdafkd62343l333333332l",
-    "send_email",
-    { userId: 23 },
-    "1m ago",
-    "14m"
-  ),
-  createData(
-    "lklfdj9sf12323kjkldsaf",
-    "send_email",
-    { userId: 32 },
-    "3s ago",
-    "29m57s"
-  ),
-  createData(
-    "7klfdjksf12323kjkldsaf",
-    "send_email",
-    { userId: 123 },
-    "10s ago",
-    "2m50s"
-  ),
-  createData(
-    "fdafkd22343l333333332l",
-    "send_email",
-    { userId: 23 },
-    "1m ago",
-    "14m"
-  ),
-  createData(
-    "lklfdjlsf12323kjkldsaf",
-    "send_email",
-    { userId: 32 },
-    "3s ago",
-    "29m57s"
-  ),
-  createData(
-    "7klfdjisf12323kjkldsaf",
-    "send_email",
-    { userId: 123 },
-    "10s ago",
-    "2m50s"
-  ),
-];
+const mapDispatchToProps = { listActiveTasksAsync };
 
-function ActiveTasksTable() {
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type ReduxProps = ConnectedProps<typeof connector>;
+
+interface Props {
+  queue: string; // name of the queue
+}
+
+function ActiveTasksTable(props: Props & ReduxProps) {
+  const { pollInterval, listActiveTasksAsync, queue } = props;
   const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -136,6 +77,24 @@ function ActiveTasksTable() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  useEffect(() => {
+    listActiveTasksAsync(queue);
+    const interval = setInterval(
+      () => listActiveTasksAsync(queue),
+      pollInterval * 1000
+    );
+    return () => clearInterval(interval);
+  }, [pollInterval, listActiveTasksAsync, queue]);
+
+  if (props.tasks.length === 0) {
+    return (
+      <Alert severity="info">
+        <AlertTitle>Info</AlertTitle>
+        No active tasks at this time.
+      </Alert>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -156,8 +115,9 @@ function ActiveTasksTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <Row key={row.id} row={row} />
+          {/* TODO: loading and empty state */}
+          {props.tasks.map((task) => (
+            <Row key={task.id} task={task} />
           ))}
         </TableBody>
         <TableFooter>
@@ -165,7 +125,7 @@ function ActiveTasksTable() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 30, 60, 100]}
               colSpan={6}
-              count={rows.length}
+              count={props.tasks.length}
               rowsPerPage={rowsPerPage}
               page={page}
               SelectProps={{
@@ -191,13 +151,13 @@ const useRowStyles = makeStyles({
   },
 });
 
-function Row(props: { row: ReturnType<typeof createData> }) {
-  const { row } = props;
+function Row(props: { task: ActiveTask }) {
+  const { task } = props;
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
   return (
     <React.Fragment>
-      <TableRow key={row.id} className={classes.root}>
+      <TableRow key={task.id} className={classes.root}>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -208,11 +168,11 @@ function Row(props: { row: ReturnType<typeof createData> }) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.id}
+          {task.id}
         </TableCell>
-        <TableCell align="right">{row.type}</TableCell>
-        <TableCell align="right">{row.workerStarted}</TableCell>
-        <TableCell align="right">{row.timeBeforeDeadline}</TableCell>
+        <TableCell align="right">{task.type}</TableCell>
+        <TableCell align="right">5s ago (TODO)</TableCell>
+        <TableCell align="right">10s</TableCell>
         <TableCell align="right">
           <Button>Cancel</Button>
         </TableCell>
@@ -225,7 +185,7 @@ function Row(props: { row: ReturnType<typeof createData> }) {
                 Payload
               </Typography>
               <SyntaxHighlighter language="json" style={syntaxHighlightStyle}>
-                {JSON.stringify(row.payload, null, 2)}
+                {JSON.stringify(task.payload, null, 2)}
               </SyntaxHighlighter>
             </Box>
           </Collapse>
@@ -325,4 +285,4 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
   );
 }
 
-export default ActiveTasksTable;
+export default connector(ActiveTasksTable);

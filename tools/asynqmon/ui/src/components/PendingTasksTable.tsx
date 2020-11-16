@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { connect, ConnectedProps } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
+import Alert from "@material-ui/lab/Alert";
+import AlertTitle from "@material-ui/lab/AlertTitle";
 import Button from "@material-ui/core/Button";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
@@ -16,6 +19,9 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import Typography from "@material-ui/core/Typography";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import syntaxHighlightStyle from "react-syntax-highlighter/dist/esm/styles/hljs/github";
+import { listPendingTasksAsync } from "../actions/tasksActions";
+import { AppState } from "../store";
+import { PendingTask } from "../api";
 
 const useStyles = makeStyles({
   table: {
@@ -23,68 +29,44 @@ const useStyles = makeStyles({
   },
 });
 
-function createData(
-  id: string,
-  type: string,
-  payload: Object,
-  retried: number,
-  maxRetry: number,
-  lastFailedAt: string,
-  lastError: string
-) {
-  return { id, type, payload, retried, maxRetry, lastFailedAt, lastError };
+function mapStateToProps(state: AppState) {
+  return {
+    loading: state.tasks.pendingTasks.loading,
+    tasks: state.tasks.pendingTasks.data,
+    pollInterval: state.settings.pollInterval,
+  };
 }
 
-const rows = [
-  createData(
-    "jklfdjasf12323kjkldsaf23232",
-    "send_email",
-    { userId: 13 },
-    4,
-    20,
-    "1h ago",
-    "some errror"
-  ),
-  createData(
-    "fdfdfadsfdaskl123232jk",
-    "send_email",
-    { userId: 12 },
-    0,
-    25,
-    "n/a",
-    "n/a"
-  ),
-  createData(
-    "fdafkd12343l333333332l",
-    "send_email",
-    { userId: 23 },
-    0,
-    25,
-    "n/a",
-    "n/a"
-  ),
-  createData(
-    "lklfdjasf12323kjkldsaf",
-    "send_email",
-    { userId: 32 },
-    0,
-    25,
-    "n/a",
-    "n/a"
-  ),
-  createData(
-    "7klfdjasf12323kjkldsaf",
-    "send_email",
-    { userId: 123 },
-    1,
-    25,
-    "n/a",
-    "n/a"
-  ),
-];
+const mapDispatchToProps = { listPendingTasksAsync };
 
-function PendingTasksTable() {
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type ReduxProps = ConnectedProps<typeof connector>;
+
+interface Props {
+  queue: string;
+}
+
+function PendingTasksTable(props: Props & ReduxProps) {
+  const { pollInterval, listPendingTasksAsync, queue } = props;
   const classes = useStyles();
+
+  useEffect(() => {
+    listPendingTasksAsync(queue);
+    const interval = setInterval(() => {
+      listPendingTasksAsync(queue);
+    }, pollInterval * 1000);
+    return () => clearInterval(interval);
+  }, [pollInterval, listPendingTasksAsync, queue]);
+
+  if (props.tasks.length === 0) {
+    return (
+      <Alert severity="info">
+        <AlertTitle>Info</AlertTitle>
+        No pending tasks at this time.
+      </Alert>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -107,8 +89,8 @@ function PendingTasksTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <Row key={row.id} row={row} />
+          {props.tasks.map((task) => (
+            <Row key={task.id} task={task} />
           ))}
         </TableBody>
       </Table>
@@ -124,13 +106,13 @@ const useRowStyles = makeStyles({
   },
 });
 
-function Row(props: { row: ReturnType<typeof createData> }) {
-  const { row } = props;
+function Row(props: { task: PendingTask }) {
+  const { task } = props;
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
   return (
     <React.Fragment>
-      <TableRow key={row.id} className={classes.root}>
+      <TableRow key={task.id} className={classes.root}>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -141,13 +123,13 @@ function Row(props: { row: ReturnType<typeof createData> }) {
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row">
-          {row.id}
+          {task.id}
         </TableCell>
-        <TableCell align="right">{row.type}</TableCell>
-        <TableCell align="right">{row.retried}</TableCell>
-        <TableCell align="right">{row.maxRetry}</TableCell>
-        <TableCell align="right">{row.lastFailedAt}</TableCell>
-        <TableCell align="right">{row.lastError}</TableCell>
+        <TableCell align="right">{task.type}</TableCell>
+        <TableCell align="right">12 (TODO)</TableCell>
+        <TableCell align="right">14 (TODO)</TableCell>
+        <TableCell align="right">5m ago (TODO)</TableCell>
+        <TableCell align="right">some error (TODO)</TableCell>
         <TableCell align="right">
           <Button>Cancel</Button>
         </TableCell>
@@ -160,7 +142,7 @@ function Row(props: { row: ReturnType<typeof createData> }) {
                 Payload
               </Typography>
               <SyntaxHighlighter language="json" style={syntaxHighlightStyle}>
-                {JSON.stringify(row.payload, null, 2)}
+                {JSON.stringify(task.payload, null, 2)}
               </SyntaxHighlighter>
             </Box>
           </Collapse>
@@ -170,4 +152,4 @@ function Row(props: { row: ReturnType<typeof createData> }) {
   );
 }
 
-export default PendingTasksTable;
+export default connector(PendingTasksTable);
