@@ -1,4 +1,5 @@
 import axios from "axios";
+import queryString from "query-string";
 
 const BASE_URL = "http://localhost:8080/api";
 
@@ -91,6 +92,11 @@ export interface DeadTask extends BaseTask {
   error_message: string;
 }
 
+export interface PaginationOptions extends Record<string, number | undefined> {
+  size?: number; // size of the page
+  page?: number; // page number (1 being the first page)
+}
+
 export async function listQueues(): Promise<ListQueuesResponse> {
   const resp = await axios({
     method: "get",
@@ -132,11 +138,17 @@ export async function listActiveTasks(
 }
 
 export async function listPendingTasks(
-  qname: string
+  qname: string,
+  pageOpts?: PaginationOptions
 ): Promise<ListPendingTasksResponse> {
+  let url = `${BASE_URL}/queues/${qname}/pending_tasks`;
+  if (pageOpts) {
+    url += `?${queryString.stringify(pageOpts)}`;
+  }
+  console.log("url:", url);
   const resp = await axios({
     method: "get",
-    url: `${BASE_URL}/queues/${qname}/pending_tasks`,
+    url,
   });
   return resp.data;
 }

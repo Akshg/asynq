@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { connect, ConnectedProps } from "react-redux";
 import {
   makeStyles,
@@ -61,8 +61,8 @@ interface Props {
 function ActiveTasksTable(props: Props & ReduxProps) {
   const { pollInterval, listActiveTasksAsync, queue } = props;
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,

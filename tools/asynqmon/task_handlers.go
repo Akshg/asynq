@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/hibiken/asynq"
@@ -32,7 +33,9 @@ func newListPendingTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		qname := vars["qname"]
-		tasks, err := inspector.ListPendingTasks(qname)
+		pageSize, pageNum := getPageOptions(r)
+		tasks, err := inspector.ListPendingTasks(
+			qname, asynq.PageSize(pageSize), asynq.Page(pageNum))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -106,4 +109,23 @@ func newListDeadTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 		}
 		json.NewEncoder(w).Encode(payload)
 	}
+}
+
+// getPageOptions read page size and number from the request url if set,
+// otherwise it returns the default value.
+func getPageOptions(r *http.Request) (pageSize, pageNum int) {
+	pageSize = 20 // default page size
+	pageNum = 1   // default page num
+	q := r.URL.Query()
+	if s := q.Get("size"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil {
+			pageSize = n
+		}
+	}
+	if s := q.Get("page"); s != "" {
+		if n, err := strconv.Atoi(s); err == nil {
+			pageNum = n
+		}
+	}
+	return pageSize, pageNum
 }

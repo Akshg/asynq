@@ -3,6 +3,7 @@ import {
   ListActiveTasksResponse,
   listPendingTasks,
   ListPendingTasksResponse,
+  PaginationOptions,
 } from "../api";
 import { Dispatch } from "redux";
 
@@ -77,11 +78,14 @@ export function listActiveTasksAsync(qname: string) {
   };
 }
 
-export function listPendingTasksAsync(qname: string) {
+export function listPendingTasksAsync(
+  qname: string,
+  pageOpts?: PaginationOptions
+) {
   return async (dispatch: Dispatch<TasksActionTypes>) => {
     dispatch({ type: LIST_PENDING_TASKS_BEGIN, queue: qname });
     try {
-      const response = await listPendingTasks(qname);
+      const response = await listPendingTasks(qname, pageOpts);
       dispatch({
         type: LIST_PENDING_TASKS_SUCCESS,
         queue: qname,

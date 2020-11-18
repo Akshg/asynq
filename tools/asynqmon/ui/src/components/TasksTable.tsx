@@ -294,7 +294,10 @@ function TasksTable(props: Props & ReduxProps) {
             failed={currentStats.failed}
             paused={currentStats.paused}
           />
-          <PendingTasksTable queue={props.queue} />
+          <PendingTasksTable
+            queue={props.queue}
+            totalTaskCount={currentStats.pending}
+          />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="scheduled" selected={props.selected}>
