@@ -128,11 +128,17 @@ export async function resumeQueue(qname: string): Promise<void> {
 }
 
 export async function listActiveTasks(
-  qname: string
+  qname: string,
+  pageOpts?: PaginationOptions
 ): Promise<ListActiveTasksResponse> {
+  let url = `${BASE_URL}/queues/${qname}/active_tasks`;
+  if (pageOpts) {
+    url += `?${queryString.stringify(pageOpts)}`;
+  }
+  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
-    url: `${BASE_URL}/queues/${qname}/active_tasks`,
+    url,
   });
   return resp.data;
 }
@@ -145,7 +151,7 @@ export async function listPendingTasks(
   if (pageOpts) {
     url += `?${queryString.stringify(pageOpts)}`;
   }
-  console.log("url:", url);
+  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
     url,
@@ -154,31 +160,48 @@ export async function listPendingTasks(
 }
 
 export async function listScheduledTasks(
-  qname: string
+  qname: string,
+  pageOpts?: PaginationOptions
 ): Promise<ListScheduledTasksResponse> {
+  let url = `${BASE_URL}/queues/${qname}/scheduled_tasks`;
+  if (pageOpts) {
+    url += `?${queryString.stringify(pageOpts)}`;
+  }
   const resp = await axios({
     method: "get",
-    url: `${BASE_URL}/queues/${qname}/scheduled_tasks`,
+    url,
   });
   return resp.data;
 }
 
 export async function listRetryTasks(
-  qname: string
+  qname: string,
+  pageOpts?: PaginationOptions
 ): Promise<ListRetryTasksResponse> {
+  let url = `${BASE_URL}/queues/${qname}/retry_tasks`;
+  if (pageOpts) {
+    url += `?${queryString.stringify(pageOpts)}`;
+  }
+  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
-    url: `${BASE_URL}/queues/${qname}/retry_tasks`,
+    url,
   });
   return resp.data;
 }
 
 export async function listDeadTasks(
-  qname: string
+  qname: string,
+  pageOpts?: PaginationOptions
 ): Promise<ListDeadTasksResponse> {
+  let url = `${BASE_URL}/queues/${qname}/dead_tasks`;
+  if (pageOpts) {
+    url += `?${queryString.stringify(pageOpts)}`;
+  }
+  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
-    url: `${BASE_URL}/queues/${qname}/dead_tasks`,
+    url,
   });
   return resp.data;
 }

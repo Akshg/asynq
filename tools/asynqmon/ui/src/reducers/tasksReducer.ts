@@ -6,8 +6,17 @@ import {
   LIST_PENDING_TASKS_BEGIN,
   LIST_PENDING_TASKS_SUCCESS,
   LIST_PENDING_TASKS_ERROR,
+  LIST_SCHEDULED_TASKS_BEGIN,
+  LIST_SCHEDULED_TASKS_SUCCESS,
+  LIST_SCHEDULED_TASKS_ERROR,
 } from "../actions/tasksActions";
-import { ActiveTask, PendingTask } from "../api";
+import {
+  ActiveTask,
+  DeadTask,
+  PendingTask,
+  RetryTask,
+  ScheduledTask,
+} from "../api";
 
 interface TasksState {
   activeTasks: {
@@ -20,6 +29,21 @@ interface TasksState {
     error: string;
     data: PendingTask[];
   };
+  scheduledTasks: {
+    loading: boolean;
+    error: string;
+    data: ScheduledTask[];
+  };
+  retryTasks: {
+    loading: boolean;
+    error: string;
+    data: RetryTask[];
+  };
+  deadTasks: {
+    loading: boolean;
+    error: string;
+    data: DeadTask[];
+  };
 }
 
 const initialState: TasksState = {
@@ -29,6 +53,21 @@ const initialState: TasksState = {
     data: [],
   },
   pendingTasks: {
+    loading: false,
+    error: "",
+    data: [],
+  },
+  scheduledTasks: {
+    loading: false,
+    error: "",
+    data: [],
+  },
+  retryTasks: {
+    loading: false,
+    error: "",
+    data: [],
+  },
+  deadTasks: {
     loading: false,
     error: "",
     data: [],
@@ -95,6 +134,36 @@ function tasksReducer(
         ...state,
         pendingTasks: {
           ...state.pendingTasks,
+          loading: false,
+          error: action.error,
+        },
+      };
+
+    case LIST_SCHEDULED_TASKS_BEGIN:
+      return {
+        ...state,
+        scheduledTasks: {
+          ...state.scheduledTasks,
+          error: "",
+          loading: true,
+        },
+      };
+
+    case LIST_SCHEDULED_TASKS_SUCCESS:
+      return {
+        ...state,
+        scheduledTasks: {
+          loading: false,
+          error: "",
+          data: action.payload.tasks,
+        },
+      };
+
+    case LIST_SCHEDULED_TASKS_ERROR:
+      return {
+        ...state,
+        scheduledTasks: {
+          ...state.scheduledTasks,
           loading: false,
           error: action.error,
         },

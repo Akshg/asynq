@@ -13,7 +13,9 @@ func newListActiveTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		qname := vars["qname"]
-		tasks, err := inspector.ListActiveTasks(qname)
+		pageSize, pageNum := getPageOptions(r)
+		tasks, err := inspector.ListActiveTasks(
+			qname, asynq.PageSize(pageSize), asynq.Page(pageNum))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -55,7 +57,9 @@ func newListScheduledTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFu
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		qname := vars["qname"]
-		tasks, err := inspector.ListScheduledTasks(qname)
+		pageSize, pageNum := getPageOptions(r)
+		tasks, err := inspector.ListScheduledTasks(
+			qname, asynq.PageSize(pageSize), asynq.Page(pageNum))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -75,7 +79,9 @@ func newListRetryTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		qname := vars["qname"]
-		tasks, err := inspector.ListRetryTasks(qname)
+		pageSize, pageNum := getPageOptions(r)
+		tasks, err := inspector.ListRetryTasks(
+			qname, asynq.PageSize(pageSize), asynq.Page(pageNum))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -95,7 +101,9 @@ func newListDeadTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		qname := vars["qname"]
-		tasks, err := inspector.ListDeadTasks(qname)
+		pageSize, pageNum := getPageOptions(r)
+		tasks, err := inspector.ListDeadTasks(
+			qname, asynq.PageSize(pageSize), asynq.Page(pageNum))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
