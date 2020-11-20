@@ -20,6 +20,11 @@ func newListActiveTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		stats, err := inspector.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		payload := make(map[string]interface{})
 		if len(tasks) == 0 {
 			// avoid nil for the tasks field in json output.
@@ -27,6 +32,7 @@ func newListActiveTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc 
 		} else {
 			payload["tasks"] = tasks
 		}
+		payload["stats"] = stats
 		json.NewEncoder(w).Encode(payload)
 	}
 }
@@ -42,6 +48,11 @@ func newListPendingTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		stats, err := inspector.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		payload := make(map[string]interface{})
 		if len(tasks) == 0 {
 			// avoid nil for the tasks field in json output.
@@ -49,6 +60,7 @@ func newListPendingTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc
 		} else {
 			payload["tasks"] = tasks
 		}
+		payload["stats"] = stats
 		json.NewEncoder(w).Encode(payload)
 	}
 }
@@ -64,6 +76,11 @@ func newListScheduledTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFu
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		stats, err := inspector.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		payload := make(map[string]interface{})
 		if len(tasks) == 0 {
 			// avoid nil for the tasks field in json output.
@@ -71,6 +88,7 @@ func newListScheduledTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFu
 		} else {
 			payload["tasks"] = tasks
 		}
+		payload["stats"] = stats
 		json.NewEncoder(w).Encode(payload)
 	}
 }
@@ -86,6 +104,11 @@ func newListRetryTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		stats, err := inspector.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		payload := make(map[string]interface{})
 		if len(tasks) == 0 {
 			// avoid nil for the tasks field in json output.
@@ -93,6 +116,7 @@ func newListRetryTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 		} else {
 			payload["tasks"] = tasks
 		}
+		payload["stats"] = stats
 		json.NewEncoder(w).Encode(payload)
 	}
 }
@@ -108,6 +132,11 @@ func newListDeadTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		stats, err := inspector.CurrentStats(qname)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		payload := make(map[string]interface{})
 		if len(tasks) == 0 {
 			// avoid nil for the tasks field in json output.
@@ -115,6 +144,7 @@ func newListDeadTasksHandlerFunc(inspector *asynq.Inspector) http.HandlerFunc {
 		} else {
 			payload["tasks"] = tasks
 		}
+		payload["stats"] = stats
 		json.NewEncoder(w).Encode(payload)
 	}
 }
