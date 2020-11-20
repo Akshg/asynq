@@ -24,7 +24,10 @@ import syntaxHighlightStyle from "react-syntax-highlighter/dist/esm/styles/hljs/
 import { listRetryTasksAsync } from "../actions/tasksActions";
 import { AppState } from "../store";
 import { RetryTask } from "../api";
-import TablePaginationActions from "./TablePaginationActions";
+import TablePaginationActions, {
+  defaultPageSize,
+  rowsPerPageOptions,
+} from "./TablePaginationActions";
 
 const useStyles = makeStyles({
   table: {
@@ -55,7 +58,7 @@ function RetryTasksTable(props: Props & ReduxProps) {
   const { pollInterval, listRetryTasksAsync, queue } = props;
   const classes = useStyles();
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -89,6 +92,18 @@ function RetryTasksTable(props: Props & ReduxProps) {
     );
   }
 
+  const columns = [
+    { label: "", alignRight: false },
+    { label: "ID", alignRight: false },
+    { label: "Type", alignRight: true },
+    { label: "Retry In", alignRight: true },
+    { label: "Last Failed", alignRight: true },
+    { label: "Last Error", alignRight: true },
+    { label: "Retried", alignRight: true },
+    { label: "Max Retry", alignRight: true },
+    { label: "Actions", alignRight: true },
+  ];
+
   return (
     <TableContainer component={Paper}>
       <Table
@@ -99,15 +114,14 @@ function RetryTasksTable(props: Props & ReduxProps) {
       >
         <TableHead>
           <TableRow>
-            <TableCell />
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Type</TableCell>
-            <TableCell align="right">Retry In</TableCell>
-            <TableCell align="right">Last Failed</TableCell>
-            <TableCell align="right">Last Error</TableCell>
-            <TableCell align="right">Retried</TableCell>
-            <TableCell align="right">Max Retry</TableCell>
-            <TableCell align="right">Action</TableCell>
+            {columns.map((col) => (
+              <TableCell
+                key={col.label}
+                align={col.alignRight ? "right" : "left"}
+              >
+                {col.label}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -118,8 +132,8 @@ function RetryTasksTable(props: Props & ReduxProps) {
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[10, 20, 30, 60, 100]}
-              colSpan={5}
+              rowsPerPageOptions={rowsPerPageOptions}
+              colSpan={columns.length}
               count={props.totalTaskCount}
               rowsPerPage={pageSize}
               page={page}

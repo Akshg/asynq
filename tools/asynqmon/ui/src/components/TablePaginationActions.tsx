@@ -102,3 +102,6 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 }
 
 export default TablePaginationActions;
+
+export const rowsPerPageOptions = [10, 20, 30, 60, 100];
+export const defaultPageSize = 20;

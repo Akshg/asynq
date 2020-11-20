@@ -24,7 +24,10 @@ import syntaxHighlightStyle from "react-syntax-highlighter/dist/esm/styles/hljs/
 import { AppState } from "../store";
 import { listDeadTasksAsync } from "../actions/tasksActions";
 import { DeadTask } from "../api";
-import TablePaginationActions from "./TablePaginationActions";
+import TablePaginationActions, {
+  defaultPageSize,
+  rowsPerPageOptions,
+} from "./TablePaginationActions";
 
 const useStyles = makeStyles({
   table: {
@@ -63,7 +66,7 @@ function DeadTasksTable(props: Props & ReduxProps) {
   const { pollInterval, listDeadTasksAsync, queue } = props;
   const classes = useStyles();
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -97,6 +100,15 @@ function DeadTasksTable(props: Props & ReduxProps) {
     );
   }
 
+  const columns = [
+    { label: "", alignRight: false },
+    { label: "ID", alignRight: false },
+    { label: "Type", alignRight: true },
+    { label: "Last Failed", alignRight: true },
+    { label: "Last Error", alignRight: true },
+    { label: "Actions", alignRight: true },
+  ];
+
   return (
     <TableContainer component={Paper}>
       <Table
@@ -107,12 +119,14 @@ function DeadTasksTable(props: Props & ReduxProps) {
       >
         <TableHead>
           <TableRow>
-            <TableCell />
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Type</TableCell>
-            <TableCell align="right">Last Failed</TableCell>
-            <TableCell align="right">Last Error</TableCell>
-            <TableCell align="right">Action</TableCell>
+            {columns.map((col) => (
+              <TableCell
+                key={col.label}
+                align={col.alignRight ? "right" : "left"}
+              >
+                {col.label}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -123,8 +137,8 @@ function DeadTasksTable(props: Props & ReduxProps) {
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[10, 20, 30, 60, 100]}
-              colSpan={5}
+              rowsPerPageOptions={rowsPerPageOptions}
+              colSpan={columns.length}
               count={props.totalTaskCount}
               rowsPerPage={pageSize}
               page={page}

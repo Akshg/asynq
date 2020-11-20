@@ -14,22 +14,27 @@ export interface GetQueueResponse {
 
 export interface ListActiveTasksResponse {
   tasks: ActiveTask[];
+  stats: Queue;
 }
 
 export interface ListPendingTasksResponse {
   tasks: PendingTask[];
+  stats: Queue;
 }
 
 export interface ListScheduledTasksResponse {
   tasks: ScheduledTask[];
+  stats: Queue;
 }
 
 export interface ListRetryTasksResponse {
   tasks: RetryTask[];
+  stats: Queue;
 }
 
 export interface ListDeadTasksResponse {
   tasks: DeadTask[];
+  stats: Queue;
 }
 
 export interface Queue {
@@ -135,7 +140,6 @@ export async function listActiveTasks(
   if (pageOpts) {
     url += `?${queryString.stringify(pageOpts)}`;
   }
-  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
     url,
@@ -151,7 +155,6 @@ export async function listPendingTasks(
   if (pageOpts) {
     url += `?${queryString.stringify(pageOpts)}`;
   }
-  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
     url,
@@ -182,7 +185,6 @@ export async function listRetryTasks(
   if (pageOpts) {
     url += `?${queryString.stringify(pageOpts)}`;
   }
-  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
     url,
@@ -198,7 +200,6 @@ export async function listDeadTasks(
   if (pageOpts) {
     url += `?${queryString.stringify(pageOpts)}`;
   }
-  console.log("debug: url: ", url); // TODO: remove line
   const resp = await axios({
     method: "get",
     url,

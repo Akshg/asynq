@@ -10,6 +10,14 @@ import {
   RESUME_QUEUE_SUCCESS,
   GET_QUEUE_SUCCESS,
 } from "../actions/queuesActions";
+import {
+  LIST_ACTIVE_TASKS_SUCCESS,
+  LIST_DEAD_TASKS_SUCCESS,
+  LIST_PENDING_TASKS_SUCCESS,
+  LIST_RETRY_TASKS_SUCCESS,
+  LIST_SCHEDULED_TASKS_SUCCESS,
+  TasksActionTypes,
+} from "../actions/tasksActions";
 import { DailyStat, Queue } from "../api";
 
 interface QueuesState {
@@ -28,7 +36,7 @@ const initialState: QueuesState = { data: [], loading: false };
 
 function queuesReducer(
   state = initialState,
-  action: QueuesActionTypes
+  action: QueuesActionTypes | TasksActionTypes
 ): QueuesState {
   switch (action.type) {
     case LIST_QUEUES_BEGIN:
@@ -108,6 +116,22 @@ function queuesReducer(
           pauseRequestPending: false,
         };
       });
+      return { ...state, data: newData };
+    }
+
+    case LIST_ACTIVE_TASKS_SUCCESS:
+    case LIST_PENDING_TASKS_SUCCESS:
+    case LIST_SCHEDULED_TASKS_SUCCESS:
+    case LIST_RETRY_TASKS_SUCCESS:
+    case LIST_DEAD_TASKS_SUCCESS: {
+      const newData = state.data
+        .filter((queueInfo) => queueInfo.name !== action.queue)
+        .concat({
+          name: action.queue,
+          currentStats: action.payload.stats,
+          history: [],
+          pauseRequestPending: false,
+        });
       return { ...state, data: newData };
     }
 

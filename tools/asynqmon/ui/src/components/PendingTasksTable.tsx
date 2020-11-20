@@ -21,7 +21,10 @@ import TableFooter from "@material-ui/core/TableFooter";
 import TablePagination from "@material-ui/core/TablePagination";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import syntaxHighlightStyle from "react-syntax-highlighter/dist/esm/styles/hljs/github";
-import TablePaginationActions from "./TablePaginationActions";
+import TablePaginationActions, {
+  defaultPageSize,
+  rowsPerPageOptions,
+} from "./TablePaginationActions";
 import { listPendingTasksAsync } from "../actions/tasksActions";
 import { AppState } from "../store";
 import { PendingTask } from "../api";
@@ -55,7 +58,7 @@ function PendingTasksTable(props: Props & ReduxProps) {
   const { pollInterval, listPendingTasksAsync, queue } = props;
   const classes = useStyles();
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -89,6 +92,13 @@ function PendingTasksTable(props: Props & ReduxProps) {
     );
   }
 
+  const columns = [
+    { label: "", alignRight: false },
+    { label: "ID", alignRight: false },
+    { label: "Type", alignRight: true },
+    { label: "Actions", alignRight: true },
+  ];
+
   return (
     <TableContainer component={Paper}>
       <Table
@@ -99,14 +109,14 @@ function PendingTasksTable(props: Props & ReduxProps) {
       >
         <TableHead>
           <TableRow>
-            <TableCell />
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Type</TableCell>
-            <TableCell align="right">Retried</TableCell>
-            <TableCell align="right">Max Retry</TableCell>
-            <TableCell align="right">Last Failed</TableCell>
-            <TableCell align="right">Last Error</TableCell>
-            <TableCell align="right">Action</TableCell>
+            {columns.map((col) => (
+              <TableCell
+                key={col.label}
+                align={col.alignRight ? "right" : "left"}
+              >
+                {col.label}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -117,8 +127,8 @@ function PendingTasksTable(props: Props & ReduxProps) {
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[10, 20, 30, 60, 100]}
-              colSpan={8}
+              rowsPerPageOptions={rowsPerPageOptions}
+              colSpan={columns.length}
               count={props.totalTaskCount}
               rowsPerPage={pageSize}
               page={page}
@@ -165,10 +175,6 @@ function Row(props: { task: PendingTask }) {
           {task.id}
         </TableCell>
         <TableCell align="right">{task.type}</TableCell>
-        <TableCell align="right">12 (TODO)</TableCell>
-        <TableCell align="right">14 (TODO)</TableCell>
-        <TableCell align="right">5m ago (TODO)</TableCell>
-        <TableCell align="right">some error (TODO)</TableCell>
         <TableCell align="right">
           <Button>Cancel</Button>
         </TableCell>

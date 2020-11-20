@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { connect, ConnectedProps } from "react-redux";
-import {
-  makeStyles,
-  useTheme,
-  Theme,
-  createStyles,
-} from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -26,13 +21,13 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import Typography from "@material-ui/core/Typography";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import syntaxHighlightStyle from "react-syntax-highlighter/dist/esm/styles/hljs/github";
-import FirstPageIcon from "@material-ui/icons/FirstPage";
-import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
-import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
-import LastPageIcon from "@material-ui/icons/LastPage";
 import { listActiveTasksAsync } from "../actions/tasksActions";
 import { AppState } from "../store";
 import { ActiveTask } from "../api";
+import TablePaginationActions, {
+  rowsPerPageOptions,
+  defaultPageSize,
+} from "./TablePaginationActions";
 
 const useStyles = makeStyles({
   table: {
@@ -62,7 +57,7 @@ function ActiveTasksTable(props: Props & ReduxProps) {
   const { pollInterval, listActiveTasksAsync, queue } = props;
   const classes = useStyles();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -74,7 +69,7 @@ function ActiveTasksTable(props: Props & ReduxProps) {
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setPageSize(parseInt(event.target.value, 10));
     setPage(0);
   };
 
@@ -96,6 +91,13 @@ function ActiveTasksTable(props: Props & ReduxProps) {
     );
   }
 
+  const columns = [
+    { label: "", alignRight: false },
+    { label: "ID", alignRight: false },
+    { label: "Type", alignRight: true },
+    { label: "Actions", alignRight: true },
+  ];
+
   return (
     <TableContainer component={Paper}>
       <Table
@@ -106,12 +108,14 @@ function ActiveTasksTable(props: Props & ReduxProps) {
       >
         <TableHead>
           <TableRow>
-            <TableCell />
-            <TableCell>ID</TableCell>
-            <TableCell align="right">Type</TableCell>
-            <TableCell align="right">Worker started</TableCell>
-            <TableCell align="right">Time before Deadline</TableCell>
-            <TableCell align="right">Action</TableCell>
+            {columns.map((col) => (
+              <TableCell
+                key={col.label}
+                align={col.alignRight ? "right" : "left"}
+              >
+                {col.label}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -123,10 +127,10 @@ function ActiveTasksTable(props: Props & ReduxProps) {
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 30, 60, 100]}
-              colSpan={6}
+              rowsPerPageOptions={rowsPerPageOptions}
+              colSpan={columns.length}
               count={props.tasks.length}
-              rowsPerPage={rowsPerPage}
+              rowsPerPage={pageSize}
               page={page}
               SelectProps={{
                 inputProps: { "aria-label": "rows per page" },
@@ -171,8 +175,6 @@ function Row(props: { task: ActiveTask }) {
           {task.id}
         </TableCell>
         <TableCell align="right">{task.type}</TableCell>
-        <TableCell align="right">5s ago (TODO)</TableCell>
-        <TableCell align="right">10s</TableCell>
         <TableCell align="right">
           <Button>Cancel</Button>
         </TableCell>
@@ -192,96 +194,6 @@ function Row(props: { task: ActiveTask }) {
         </TableCell>
       </TableRow>
     </React.Fragment>
-  );
-}
-
-const usePaginationActionStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      flexShrink: 0,
-      marginLeft: theme.spacing(2.5),
-    },
-  })
-);
-
-interface TablePaginationActionsProps {
-  count: number;
-  page: number;
-  rowsPerPage: number;
-  onChangePage: (
-    event: React.MouseEvent<HTMLButtonElement>,
-    newPage: number
-  ) => void;
-}
-
-function TablePaginationActions(props: TablePaginationActionsProps) {
-  const classes = usePaginationActionStyles();
-  const theme = useTheme();
-  const { count, page, rowsPerPage, onChangePage } = props;
-
-  const handleFirstPageButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    onChangePage(event, 0);
-  };
-
-  const handleBackButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    onChangePage(event, page - 1);
-  };
-
-  const handleNextButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    onChangePage(event, page + 1);
-  };
-
-  const handleLastPageButtonClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-  };
-
-  return (
-    <div className={classes.root}>
-      <IconButton
-        onClick={handleFirstPageButtonClick}
-        disabled={page === 0}
-        aria-label="first page"
-      >
-        {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
-      </IconButton>
-      <IconButton
-        onClick={handleBackButtonClick}
-        disabled={page === 0}
-        aria-label="previous page"
-      >
-        {theme.direction === "rtl" ? (
-          <KeyboardArrowRight />
-        ) : (
-          <KeyboardArrowLeft />
-        )}
-      </IconButton>
-      <IconButton
-        onClick={handleNextButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-        aria-label="next page"
-      >
-        {theme.direction === "rtl" ? (
-          <KeyboardArrowLeft />
-        ) : (
-          <KeyboardArrowRight />
-        )}
-      </IconButton>
-      <IconButton
-        onClick={handleLastPageButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
-        aria-label="last page"
-      >
-        {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}
-      </IconButton>
-    </div>
   );
 }
 

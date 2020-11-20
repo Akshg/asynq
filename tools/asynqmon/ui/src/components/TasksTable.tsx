@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 import styled from "styled-components";
 import { makeStyles } from "@material-ui/core/styles";
@@ -15,7 +15,6 @@ import { Typography } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper/Paper";
 import { QueueInfo } from "../reducers/queuesReducer";
 import { AppState } from "../store";
-import { getQueueAsync } from "../actions/queuesActions";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -172,17 +171,10 @@ function mapStatetoProps(state: AppState, ownProps: Props) {
         failed: 0,
         timestamp: "n/a",
       };
-  return {
-    currentStats,
-    pollInterval: state.settings.pollInterval,
-  };
+  return { currentStats };
 }
 
-const mapDispatchToProps = {
-  getQueueAsync,
-};
-
-const connector = connect(mapStatetoProps, mapDispatchToProps);
+const connector = connect(mapStatetoProps);
 
 type ReduxProps = ConnectedProps<typeof connector>;
 
@@ -192,18 +184,9 @@ interface Props {
 }
 
 function TasksTable(props: Props & ReduxProps) {
-  const { pollInterval, getQueueAsync, queue, currentStats } = props;
+  const { currentStats } = props;
   const classes = useStyles();
   const history = useHistory();
-
-  useEffect(() => {
-    getQueueAsync(queue);
-    const interval = setInterval(
-      () => getQueueAsync(queue),
-      pollInterval * 1000
-    );
-    return () => clearInterval(interval);
-  }, [pollInterval, getQueueAsync, queue]);
 
   return (
     <Container>
