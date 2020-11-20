@@ -9,6 +9,12 @@ import {
   LIST_SCHEDULED_TASKS_BEGIN,
   LIST_SCHEDULED_TASKS_SUCCESS,
   LIST_SCHEDULED_TASKS_ERROR,
+  LIST_RETRY_TASKS_BEGIN,
+  LIST_RETRY_TASKS_SUCCESS,
+  LIST_RETRY_TASKS_ERROR,
+  LIST_DEAD_TASKS_BEGIN,
+  LIST_DEAD_TASKS_SUCCESS,
+  LIST_DEAD_TASKS_ERROR,
 } from "../actions/tasksActions";
 import {
   ActiveTask,
@@ -164,6 +170,66 @@ function tasksReducer(
         ...state,
         scheduledTasks: {
           ...state.scheduledTasks,
+          loading: false,
+          error: action.error,
+        },
+      };
+
+    case LIST_RETRY_TASKS_BEGIN:
+      return {
+        ...state,
+        retryTasks: {
+          ...state.retryTasks,
+          error: "",
+          loading: true,
+        },
+      };
+
+    case LIST_RETRY_TASKS_SUCCESS:
+      return {
+        ...state,
+        retryTasks: {
+          loading: false,
+          error: "",
+          data: action.payload.tasks,
+        },
+      };
+
+    case LIST_RETRY_TASKS_ERROR:
+      return {
+        ...state,
+        retryTasks: {
+          ...state.retryTasks,
+          loading: false,
+          error: action.error,
+        },
+      };
+
+    case LIST_DEAD_TASKS_BEGIN:
+      return {
+        ...state,
+        deadTasks: {
+          ...state.deadTasks,
+          error: "",
+          loading: true,
+        },
+      };
+
+    case LIST_DEAD_TASKS_SUCCESS:
+      return {
+        ...state,
+        deadTasks: {
+          loading: false,
+          error: "",
+          data: action.payload.tasks,
+        },
+      };
+
+    case LIST_DEAD_TASKS_ERROR:
+      return {
+        ...state,
+        deadTasks: {
+          ...state.deadTasks,
           loading: false,
           error: action.error,
         },

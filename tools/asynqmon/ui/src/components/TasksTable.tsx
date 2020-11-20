@@ -322,7 +322,10 @@ function TasksTable(props: Props & ReduxProps) {
             failed={currentStats.failed}
             paused={currentStats.paused}
           />
-          <RetryTasksTable />
+          <RetryTasksTable
+            queue={props.queue}
+            totalTaskCount={currentStats.retry}
+          />
         </PanelContainer>
       </TabPanel>
       <TabPanel value="dead" selected={props.selected}>
@@ -333,7 +336,10 @@ function TasksTable(props: Props & ReduxProps) {
             failed={currentStats.failed}
             paused={currentStats.paused}
           />
-          <DeadTasksTable />
+          <DeadTasksTable
+            queue={props.queue}
+            totalTaskCount={currentStats.dead}
+          />
         </PanelContainer>
       </TabPanel>
     </Container>
