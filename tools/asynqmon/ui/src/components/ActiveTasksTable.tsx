@@ -92,10 +92,10 @@ function ActiveTasksTable(props: Props & ReduxProps) {
   }
 
   const columns = [
-    { label: "", alignRight: false },
-    { label: "ID", alignRight: false },
-    { label: "Type", alignRight: true },
-    { label: "Actions", alignRight: true },
+    { label: "" },
+    { label: "ID" },
+    { label: "Type" },
+    { label: "Actions" },
   ];
 
   return (
@@ -109,12 +109,7 @@ function ActiveTasksTable(props: Props & ReduxProps) {
         <TableHead>
           <TableRow>
             {columns.map((col) => (
-              <TableCell
-                key={col.label}
-                align={col.alignRight ? "right" : "left"}
-              >
-                {col.label}
-              </TableCell>
+              <TableCell key={col.label}>{col.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -174,8 +169,8 @@ function Row(props: { task: ActiveTask }) {
         <TableCell component="th" scope="row">
           {task.id}
         </TableCell>
-        <TableCell align="right">{task.type}</TableCell>
-        <TableCell align="right">
+        <TableCell>{task.type}</TableCell>
+        <TableCell>
           <Button>Cancel</Button>
         </TableCell>
       </TableRow>

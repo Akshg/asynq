@@ -28,6 +28,7 @@ import TablePaginationActions, {
   defaultPageSize,
   rowsPerPageOptions,
 } from "./TablePaginationActions";
+import { timeAgo } from "../timeutil";
 
 const useStyles = makeStyles({
   table: {
@@ -101,12 +102,12 @@ function DeadTasksTable(props: Props & ReduxProps) {
   }
 
   const columns = [
-    { label: "", alignRight: false },
-    { label: "ID", alignRight: false },
-    { label: "Type", alignRight: true },
-    { label: "Last Failed", alignRight: true },
-    { label: "Last Error", alignRight: true },
-    { label: "Actions", alignRight: true },
+    { label: "" },
+    { label: "ID" },
+    { label: "Type" },
+    { label: "Last Failed" },
+    { label: "Last Error" },
+    { label: "Actions" },
   ];
 
   return (
@@ -120,12 +121,7 @@ function DeadTasksTable(props: Props & ReduxProps) {
         <TableHead>
           <TableRow>
             {columns.map((col) => (
-              <TableCell
-                key={col.label}
-                align={col.alignRight ? "right" : "left"}
-              >
-                {col.label}
-              </TableCell>
+              <TableCell key={col.label}>{col.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -176,10 +172,10 @@ function Row(props: { task: DeadTask }) {
         <TableCell component="th" scope="row">
           {task.id}
         </TableCell>
-        <TableCell align="right">{task.type}</TableCell>
-        <TableCell align="right">{task.last_failed_at}</TableCell>
-        <TableCell align="right">{task.error_message}</TableCell>
-        <TableCell align="right">
+        <TableCell>{task.type}</TableCell>
+        <TableCell>{timeAgo(task.last_failed_at)}</TableCell>
+        <TableCell>{task.error_message}</TableCell>
+        <TableCell>
           <Button>Cancel</Button>
         </TableCell>
       </TableRow>

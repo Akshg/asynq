@@ -28,6 +28,7 @@ import TablePaginationActions, {
   defaultPageSize,
   rowsPerPageOptions,
 } from "./TablePaginationActions";
+import { durationBefore } from "../timeutil";
 
 const useStyles = makeStyles({
   table: {
@@ -93,15 +94,14 @@ function RetryTasksTable(props: Props & ReduxProps) {
   }
 
   const columns = [
-    { label: "", alignRight: false },
-    { label: "ID", alignRight: false },
-    { label: "Type", alignRight: true },
-    { label: "Retry In", alignRight: true },
-    { label: "Last Failed", alignRight: true },
-    { label: "Last Error", alignRight: true },
-    { label: "Retried", alignRight: true },
-    { label: "Max Retry", alignRight: true },
-    { label: "Actions", alignRight: true },
+    { label: "" },
+    { label: "ID" },
+    { label: "Type" },
+    { label: "Retry In" },
+    { label: "Last Error" },
+    { label: "Retried" },
+    { label: "Max Retry" },
+    { label: "Actions" },
   ];
 
   return (
@@ -115,12 +115,7 @@ function RetryTasksTable(props: Props & ReduxProps) {
         <TableHead>
           <TableRow>
             {columns.map((col) => (
-              <TableCell
-                key={col.label}
-                align={col.alignRight ? "right" : "left"}
-              >
-                {col.label}
-              </TableCell>
+              <TableCell key={col.label}>{col.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -179,13 +174,12 @@ function Row(props: { task: RetryTask }) {
         <TableCell component="th" scope="row">
           {task.id}
         </TableCell>
-        <TableCell align="right">{task.type}</TableCell>
-        <TableCell align="right">{task.next_process_at}</TableCell>
-        <TableCell align="right">TODO</TableCell>
-        <TableCell align="right">{task.error_message}</TableCell>
-        <TableCell align="right">{task.retried}</TableCell>
-        <TableCell align="right">{task.max_retry}</TableCell>
-        <TableCell align="right">
+        <TableCell>{task.type}</TableCell>
+        <TableCell>{durationBefore(task.next_process_at)}</TableCell>
+        <TableCell>{task.error_message}</TableCell>
+        <TableCell>{task.retried}</TableCell>
+        <TableCell>{task.max_retry}</TableCell>
+        <TableCell>
           <Button>Cancel</Button>
         </TableCell>
       </TableRow>
