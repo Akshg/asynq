@@ -85,6 +85,7 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     display: "flex",
     paddingTop: "64px", // app-bar height
+    overflow: "scroll",
   },
   sidebarContainer: {
     display: "flex",

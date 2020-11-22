@@ -4,13 +4,16 @@ import Container from "@material-ui/core/Container";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 import {
   listQueuesAsync,
   pauseQueueAsync,
   resumeQueueAsync,
 } from "../actions/queuesActions";
-import QueuesOverviewTable from "../components/QueuesOverviewTable";
 import { AppState } from "../store";
+import QueueSizeChart from "../components/QueueSizeChart";
+import ProcessedTasksChart from "../components/ProcessedTasksChart";
+import QueuesOverviewTable from "../components/QueuesOverviewTable";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -22,6 +25,10 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     overflow: "auto",
     flexDirection: "column",
+  },
+  chartContainer: {
+    width: "100%",
+    height: "300px",
   },
 }));
 
@@ -56,9 +63,33 @@ function DashboardView(props: Props) {
     return () => clearInterval(interval);
   }, [pollInterval, listQueuesAsync]);
 
+  const processedStats = queues.map((q) => ({
+    queue: q.queue,
+    succeeded: q.processed - q.failed,
+    failed: q.failed,
+  }));
+
   return (
     <Container maxWidth="lg" className={classes.container}>
       <Grid container spacing={3}>
+        <Grid item xs={6}>
+          <Paper className={classes.paper} variant="outlined">
+            <Typography variant="h6">Queue Size</Typography>
+            <div className={classes.chartContainer}>
+              <QueueSizeChart data={queues} />
+            </div>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Paper className={classes.paper} variant="outlined">
+            <Typography variant="h6">Tasks Processed</Typography>
+            <div className={classes.chartContainer}>
+              <ProcessedTasksChart data={processedStats} />
+            </div>
+          </Paper>
+        </Grid>
+
         <Grid item xs={12}>
           <Paper className={classes.paper} variant="outlined">
             {/* TODO: Add loading indicator  */}
