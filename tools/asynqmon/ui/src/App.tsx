@@ -9,7 +9,7 @@ import List from "@material-ui/core/List";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import DashboardIcon from "@material-ui/icons/Dashboard";
+import BarChartIcon from "@material-ui/icons/BarChart";
 import LayersIcon from "@material-ui/icons/Layers";
 import SettingsIcon from "@material-ui/icons/Settings";
 import { paths } from "./paths";
@@ -58,6 +58,7 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
+    border: "none",
   },
   drawerPaperClose: {
     overflowX: "hidden",
@@ -148,7 +149,7 @@ function App() {
                   <ListItemLink
                     to="/"
                     primary="Queues"
-                    icon={<DashboardIcon />}
+                    icon={<BarChartIcon />}
                   />
                   <ListItemLink
                     to="/cron"
