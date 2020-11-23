@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
     overflow: "auto",
     flexDirection: "column",
   },
+  chartHeader: {
+    marginBottom: theme.spacing(2),
+  },
   chartContainer: {
     width: "100%",
     height: "300px",
@@ -74,7 +77,9 @@ function DashboardView(props: Props) {
       <Grid container spacing={3}>
         <Grid item xs={6}>
           <Paper className={classes.paper} variant="outlined">
-            <Typography variant="h6">Queue Size</Typography>
+            <Typography variant="h6" className={classes.chartHeader}>
+              Queue Size
+            </Typography>
             <div className={classes.chartContainer}>
               <QueueSizeChart data={queues} />
             </div>
@@ -83,7 +88,9 @@ function DashboardView(props: Props) {
 
         <Grid item xs={6}>
           <Paper className={classes.paper} variant="outlined">
-            <Typography variant="h6">Tasks Processed</Typography>
+            <Typography variant="h6" className={classes.chartHeader}>
+              Tasks Processed
+            </Typography>
             <div className={classes.chartContainer}>
               <ProcessedTasksChart data={processedStats} />
             </div>

@@ -20,13 +20,16 @@ const useStyles = makeStyles({
     minWidth: 650,
   },
   linkCell: {
-    fontWeight: 600,
+    textDecoration: "none",
   },
   footerCell: {
     fontWeight: 600,
     fontSize: "0.875rem",
     borderBottom: "none",
     backgroundColor: "#f5f9fa",
+  },
+  boldCell: {
+    fontWeight: 600,
   },
 });
 
@@ -179,20 +182,59 @@ export default function QueuesOverviewTable(props: Props) {
               <TableCell
                 component="th"
                 scope="row"
-                className={classes.linkCell}
+                className={classes.boldCell}
               >
                 <Link to={queueDetailsPath(q.queue)}>
                   {q.queue}
                   {q.paused ? " (paused)" : ""}
                 </Link>
               </TableCell>
-              <TableCell align="right">{q.size}</TableCell>
-              <TableCell align="right">{q.active}</TableCell>
-              <TableCell align="right">{q.pending}</TableCell>
-              <TableCell align="right">{q.scheduled}</TableCell>
-              <TableCell align="right">{q.retry}</TableCell>
-              <TableCell align="right">{q.dead}</TableCell>
-              <TableCell align="right">{q.processed}</TableCell>
+              <TableCell align="right" className={classes.boldCell}>
+                {q.size}
+              </TableCell>
+              <TableCell align="right">
+                <Link
+                  to={queueDetailsPath(q.queue, "active")}
+                  className={classes.linkCell}
+                >
+                  {q.active}
+                </Link>
+              </TableCell>
+              <TableCell align="right">
+                <Link
+                  to={queueDetailsPath(q.queue, "pending")}
+                  className={classes.linkCell}
+                >
+                  {q.pending}
+                </Link>
+              </TableCell>
+              <TableCell align="right">
+                <Link
+                  to={queueDetailsPath(q.queue, "scheduled")}
+                  className={classes.linkCell}
+                >
+                  {q.scheduled}
+                </Link>
+              </TableCell>
+              <TableCell align="right">
+                <Link
+                  to={queueDetailsPath(q.queue, "retry")}
+                  className={classes.linkCell}
+                >
+                  {q.retry}
+                </Link>
+              </TableCell>
+              <TableCell align="right">
+                <Link
+                  to={queueDetailsPath(q.queue, "dead")}
+                  className={classes.linkCell}
+                >
+                  {q.dead}
+                </Link>
+              </TableCell>
+              <TableCell align="right" className={classes.boldCell}>
+                {q.processed}
+              </TableCell>
               <TableCell align="right">{q.failed}</TableCell>
               <TableCell align="right">
                 {q.paused ? (
