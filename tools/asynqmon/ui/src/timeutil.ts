@@ -43,3 +43,11 @@ export function timeAgo(timestamp: string): string {
     return "-";
   }
 }
+
+export function getCurrentUTCDate(): string {
+  const today = new Date();
+  const dd = today.getUTCDate().toString().padStart(2, "0");
+  const mm = (today.getMonth() + 1).toString().padStart(2, "0");
+  const yyyy = today.getFullYear();
+  return `${yyyy}-${mm}-${dd}`;
+}

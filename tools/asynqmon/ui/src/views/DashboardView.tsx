@@ -5,6 +5,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
+import InfoIcon from "@material-ui/icons/Info";
 import {
   listQueuesAsync,
   pauseQueueAsync,
@@ -14,6 +15,8 @@ import { AppState } from "../store";
 import QueueSizeChart from "../components/QueueSizeChart";
 import ProcessedTasksChart from "../components/ProcessedTasksChart";
 import QueuesOverviewTable from "../components/QueuesOverviewTable";
+import Tooltip from "../components/Tooltip";
+import { getCurrentUTCDate } from "../timeutil";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -27,11 +30,21 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
   },
   chartHeader: {
+    display: "flex",
+    alignItems: "center",
     marginBottom: theme.spacing(2),
   },
   chartContainer: {
     width: "100%",
     height: "300px",
+  },
+  infoIcon: {
+    marginLeft: theme.spacing(1),
+    color: theme.palette.grey[500],
+    cursor: "pointer",
+  },
+  tooltipSection: {
+    marginBottom: "4px",
   },
 }));
 
@@ -77,9 +90,40 @@ function DashboardView(props: Props) {
       <Grid container spacing={3}>
         <Grid item xs={6}>
           <Paper className={classes.paper} variant="outlined">
-            <Typography variant="h6" className={classes.chartHeader}>
-              Queue Size
-            </Typography>
+            <div className={classes.chartHeader}>
+              <Typography variant="h6">Queue Size</Typography>
+              <Tooltip
+                title={
+                  <div>
+                    <div className={classes.tooltipSection}>
+                      Total number of tasks in the queue
+                    </div>
+                    <div className={classes.tooltipSection}>
+                      <strong>Active</strong>: number of tasks currently being
+                      processed
+                    </div>
+                    <div className={classes.tooltipSection}>
+                      <strong>Pending</strong>: number of tasks ready to be
+                      processed
+                    </div>
+                    <div className={classes.tooltipSection}>
+                      <strong>Scheduled</strong>: number of tasks scheduled to
+                      be processed in the future
+                    </div>
+                    <div className={classes.tooltipSection}>
+                      <strong>Retry</strong>: number of tasks scheduled to be
+                      retried in the future
+                    </div>
+                    <div>
+                      <strong>Dead</strong>: number of tasks exhausted their
+                      retries
+                    </div>
+                  </div>
+                }
+              >
+                <InfoIcon fontSize="small" className={classes.infoIcon} />
+              </Tooltip>
+            </div>
             <div className={classes.chartContainer}>
               <QueueSizeChart data={queues} />
             </div>
@@ -88,9 +132,29 @@ function DashboardView(props: Props) {
 
         <Grid item xs={6}>
           <Paper className={classes.paper} variant="outlined">
-            <Typography variant="h6" className={classes.chartHeader}>
-              Tasks Processed
-            </Typography>
+            <div className={classes.chartHeader}>
+              <Typography variant="h6">Tasks Processed</Typography>
+              <Tooltip
+                title={
+                  <div>
+                    <div className={classes.tooltipSection}>
+                      Total number of tasks processed today (
+                      {getCurrentUTCDate()} UTC)
+                    </div>
+                    <div className={classes.tooltipSection}>
+                      <strong>Succeeded</strong>: number of tasks successfully
+                      processed from the queue
+                    </div>
+                    <div>
+                      <strong>Failed</strong>: number of tasks failed to be
+                      processed from the queue
+                    </div>
+                  </div>
+                }
+              >
+                <InfoIcon fontSize="small" className={classes.infoIcon} />
+              </Tooltip>
+            </div>
             <div className={classes.chartContainer}>
               <ProcessedTasksChart data={processedStats} />
             </div>
