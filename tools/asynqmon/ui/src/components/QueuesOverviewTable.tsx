@@ -52,6 +52,7 @@ enum SortBy {
   Retry,
   Dead,
   Processed,
+  Succeeded,
   Failed,
 
   None, // disable sort
@@ -71,6 +72,7 @@ const columnConfig = [
   { label: "Retry", key: "retry", sortBy: SortBy.Retry },
   { label: "Dead", key: "dead", sortBy: SortBy.Dead },
   { label: "Processed", key: "processed", sortBy: SortBy.Processed },
+  { label: "Succeeded", key: "Succeeded", sortBy: SortBy.Succeeded },
   { label: "Failed", key: "failed", sortBy: SortBy.Failed },
   { label: "Pause", key: "pause", sortBy: SortBy.None },
 ];
@@ -138,6 +140,12 @@ export default function QueuesOverviewTable(props: Props) {
       case SortBy.Processed:
         if (q1.processed === q2.processed) return 0;
         isQ1Smaller = q1.processed < q2.processed;
+        break;
+      case SortBy.Succeeded:
+        const q1Succeeded = q1.processed - q1.failed;
+        const q2Succeeded = q2.processed - q2.failed;
+        if (q1Succeeded === q2Succeeded) return 0;
+        isQ1Smaller = q1Succeeded < q2Succeeded;
         break;
       case SortBy.Failed:
         if (q1.failed === q2.failed) return 0;
@@ -235,6 +243,7 @@ export default function QueuesOverviewTable(props: Props) {
               <TableCell align="right" className={classes.boldCell}>
                 {q.processed}
               </TableCell>
+              <TableCell align="right">{q.processed - q.failed}</TableCell>
               <TableCell align="right">{q.failed}</TableCell>
               <TableCell align="right">
                 {q.paused ? (
@@ -283,6 +292,9 @@ export default function QueuesOverviewTable(props: Props) {
               {total.processed}
             </TableCell>
             <TableCell className={classes.footerCell} align="right">
+              {total.succeeded}
+            </TableCell>
+            <TableCell className={classes.footerCell} align="right">
               {total.failed}
             </TableCell>
           </TableRow>
@@ -300,6 +312,7 @@ interface AggregateCounts {
   retry: number;
   dead: number;
   processed: number;
+  succeeded: number;
   failed: number;
 }
 
@@ -312,6 +325,7 @@ function getAggregateCounts(queues: Queue[]): AggregateCounts {
     retry: 0,
     dead: 0,
     processed: 0,
+    succeeded: 0,
     failed: 0,
   };
   queues.forEach((q) => {
@@ -322,6 +336,7 @@ function getAggregateCounts(queues: Queue[]): AggregateCounts {
     total.retry += q.retry;
     total.dead += q.dead;
     total.processed += q.processed;
+    total.succeeded += q.processed - q.failed;
     total.failed += q.failed;
   });
   return total;
